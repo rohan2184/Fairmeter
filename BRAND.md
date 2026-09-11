@@ -425,9 +425,11 @@ One owner. Code is canonical. **Decisions go in `DECISIONS.md`** — it already 
 changelog and is where a rationale belongs; this file records the *result*, not the debate.
 No versioning scheme, no contribution process, no docs site.
 
-`app/src/ui/design/` is the design lab: candidate directions rendered with the reference
-bill's real figures. Once a direction is chosen it either becomes a living style reference
-or gets deleted — it is dev-only either way, reachable from the header button or `#design`.
+The design lab — candidate directions rendered with the reference bill's real figures —
+did its job: direction **2a, "Warm ledger"** was chosen and is what `app/src/styles.css`
+now implements. The lab itself has been retired to `discard/design-lab/` (D-16). It was
+never meant to ship, and while it did it was reachable in production from a footer link
+and the `#design` hash, carrying about a third of the CSS bundle with it.
 
 ---
 

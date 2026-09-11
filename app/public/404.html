@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="theme-color" content="#f2ece1" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#191b16" media="(prefers-color-scheme: dark)" />
+    <title>Page not found · Fairmeter</title>
+    <!--
+      Self-contained by design: no bundle, no external stylesheet, no webfont, and no
+      script beyond the theme pre-paint below. Whatever broke may be exactly the thing
+      that stops an external file loading, so this page depends on nothing.
+      Type falls back to the system stack rather than blocking on Fraunces.
+    -->
+    <style>
+      :root {
+        /* BRAND.md §7 primitives, light — a verbatim subset of app/src/styles.css. */
+        --cream-050: #fdfbf6;
+        --cream-100: #f2ece1;
+        --sand-300: #d6cdba;
+        --ink-600: #635e50;
+        --ink-900: #23281f;
+        --clay-600: #a8551f;
+        --clay-700: #8e461a;
+        --olive-500: #6b7a4a;
+        --red-600: #b23a2b;
+
+        --face-display: "Fraunces", "Iowan Old Style", Georgia, "Times New Roman", serif;
+        --face-body: "Instrument Sans", -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+        --face-mono: "DM Mono", ui-monospace, "SF Mono", "Roboto Mono", Consolas, monospace;
+
+        color-scheme: light;
+        --surface: var(--cream-100);
+        --surface-raised: var(--cream-050);
+        --text: var(--ink-900);
+        --text-muted: var(--ink-600);
+        --border: var(--sand-300);
+        --accent: var(--clay-600);
+        --accent-ink: var(--cream-050);
+        --accent-hover: var(--clay-700);
+        --seg-2: var(--olive-500);
+        --alert: var(--red-600);
+        --focus: var(--clay-600);
+      }
+
+      /* Dark map, stated twice against the same values — once for a pinned choice and
+         once for an inherited one, exactly as styles.css does it. Change one, change
+         the other. */
+      :root[data-theme="dark"] {
+        color-scheme: dark;
+        --surface: #191b16;
+        --surface-raised: #23261e;
+        --text: #f0ece1;
+        --text-muted: #a8a291;
+        --border: #3a3d33;
+        --accent: #d98a4e;
+        --accent-ink: #1a1610;
+        --accent-hover: #e8a771;
+        --seg-2: #a3b573;
+        --alert: #e8735c;
+        --focus: #d98a4e;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]) {
+          color-scheme: dark;
+          --surface: #191b16;
+          --surface-raised: #23261e;
+          --text: #f0ece1;
+          --text-muted: #a8a291;
+          --border: #3a3d33;
+          --accent: #d98a4e;
+          --accent-ink: #1a1610;
+          --accent-hover: #e8a771;
+          --seg-2: #a3b573;
+          --alert: #e8735c;
+          --focus: #d98a4e;
+        }
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--face-body);
+        font-size: 15px;
+        line-height: 1.55;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      .sheet {
+        width: 100%;
+        max-width: 460px;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-radius: 2px;
+        padding: 40px 32px 32px;
+        text-align: center;
+      }
+
+      /* --- the mark, in its failure state --------------------------------------
+         The brand mark is two unequal blocks on one rule that spans exactly their
+         combined width (BRAND.md §2). Here the blocks fall short of the rule and the
+         shortfall is drawn in the alert ink: the figure does not add up. That is the
+         whole idea of the page, so it is the illustration. */
+      .mark { width: 96px; height: 96px; display: block; margin: 0 auto 24px; }
+      .blk-1 { fill: var(--accent); }
+      .blk-2 { fill: var(--seg-2); }
+      .rule  { fill: var(--text); }
+      .short { fill: var(--alert); }
+
+      /* transform-box keeps the percentage-free translate honest inside the viewBox */
+      .blk-2 { animation: drift 3.2s cubic-bezier(0.2, 0, 0, 1) infinite; }
+      .short { animation: tally 3.2s cubic-bezier(0.2, 0, 0, 1) infinite; }
+
+      @keyframes drift {
+        0%, 100% { transform: translateX(0); }
+        45%      { transform: translateX(-1.5px); }
+      }
+      @keyframes tally {
+        0%, 100% { opacity: 0.25; }
+        45%      { opacity: 1; }
+      }
+
+      .status {
+        font-family: var(--face-mono);
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        margin: 0 0 8px;
+      }
+
+      h1 {
+        font-family: var(--face-display);
+        font-weight: 600;
+        font-size: 30px;
+        line-height: 1.2;
+        letter-spacing: -0.02em;
+        margin: 0 0 12px;
+      }
+
+      p.body { color: var(--text-muted); margin: 0 auto; max-width: 34ch; }
+
+      hr { border: 0; border-top: 1px solid var(--border); margin: 28px 0 24px; }
+
+      .action {
+        display: inline-block;
+        background: var(--accent);
+        color: var(--accent-ink);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 15px;
+        padding: 10px 20px;
+        border-radius: 2px;
+        transition: background 160ms cubic-bezier(0.2, 0, 0, 1);
+      }
+      .action:hover { background: var(--accent-hover); }
+      .action:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+      .foot { margin: 20px 0 0; font-size: 13px; color: var(--text-muted); }
+      .foot b { font-weight: 500; color: var(--text); }
+
+      @media (max-width: 420px) {
+        .sheet { padding: 32px 20px 24px; }
+        h1 { font-size: 24px; }
+        .mark { width: 76px; height: 76px; }
+      }
+
+      /* Motion is decoration here — the shortfall reads perfectly well standing still. */
+      @media (prefers-reduced-motion: reduce) {
+        .blk-2, .short { animation: none; }
+        .short { opacity: 1; }
+      }
+    </style>
+    <!-- Same pre-paint theme pin as index.html, so an error page does not flash the
+         system's ground at someone who pinned the other one. -->
+    <script>
+      try {
+        var t = localStorage.getItem('fairmeter:theme');
+        if (t === 'light' || t === 'dark') {
+          document.documentElement.setAttribute('data-theme', t);
+          document.querySelectorAll('meta[name="theme-color"]').forEach(function (m) {
+            m.content = t === 'dark' ? '#191b16' : '#f2ece1';
+          });
+        }
+      } catch (e) {
+        /* storage blocked — fall through to prefers-color-scheme */
+      }
+    </script>
+  </head>
+  <body>
+    <main class="sheet">
+      <svg class="mark" viewBox="0 0 32 32" role="img"
+           aria-label="Two blocks falling short of the rule they should total to">
+        <rect class="blk-1" x="4" y="6" width="12" height="16" />
+        <rect class="blk-2" x="18" y="12" width="6" height="10" />
+        <!-- the rule, split: the part the blocks account for, and the part they don't -->
+        <rect class="rule"  x="4"  y="25" width="20" height="3" />
+        <rect class="short" x="24" y="25" width="4"  height="3" />
+      </svg>
+
+      <p class="status">404 · not found</p>
+      <h1>That page isn&rsquo;t here</h1>
+      <p class="body">
+        The address didn&rsquo;t match anything in Fairmeter. Everything lives on the one
+        page — the bill, the sub-meters and the split.
+      </p>
+
+      <hr />
+
+      <a class="action" href="/">Go to the split</a>
+      <p class="foot">
+        Your saved cycles are untouched. They live in <b>this browser</b>, not on the server.
+      </p>
+    </main>
+  </body>
+</html>

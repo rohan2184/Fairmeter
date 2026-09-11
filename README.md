@@ -55,6 +55,9 @@ npm run build
 | [`SPEC.md`](./SPEC.md) | Domain model, calculation contract, validation rules |
 | [`DECISIONS.md`](./DECISIONS.md) | Every policy decision, with rationale |
 | `100113210.pdf` | Reference bill (Torrent Power, Ahmedabad, July 2026) |
+| [`PROVIDERS.md`](./PROVIDERS.md) | Utility research: every tariff figure and its source |
+| [`BRAND.md`](./BRAND.md) | Type, colour, tokens, voice |
+| [`infra/README.md`](./infra/README.md) | How the site is hosted and deployed |
 
 ## Status
 

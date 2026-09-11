@@ -29,7 +29,9 @@ absent owner. The unit of the model is a household, which is either metered or u
 | `app/src/engine/providers/` | Provider catalogue + profile→bill builder (D-10) |
 | `app/src/storage/` | `CycleStore` interface + localStorage implementation |
 | `app/src/ui/`, `app/src/export/` | React components; WhatsApp text + print output |
+| `app/public/404.html`, `50x.html` | Standalone branded status pages — no bundle, no webfont (D-16) |
 | `infra/` | AWS CDK stack: private S3 + CloudFront static hosting (D-15). `npm run deploy` |
+| `discard/` | Retired material kept out of the way — see `discard/README.md` (D-16) |
 
 ## Commands
 
@@ -105,7 +107,7 @@ statement (`@media print` in `styles.css`), and a history view over saved cycles
 `pdftoppm` is not installed, so `Read` cannot render the PDF. Extract text with:
 
 ```powershell
-python -c "from pypdf import PdfReader; print('\n'.join(p.extract_text() for p in PdfReader(r'D:\side-project-02\100113210.pdf').pages))"
+python -c "from pypdf import PdfReader; print('\n'.join(p.extract_text() for p in PdfReader(r'D:\Fairmeter\100113210.pdf').pages))"
 ```
 
 (`pypdf` is already installed for the system Python at `C:\Python314\python.exe`.)

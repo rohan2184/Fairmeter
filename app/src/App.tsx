@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { split, validate } from './engine/split';
 import type { ResidualPolicy, SplitOptions, SplitResult } from './engine/types';
 import { createLocalStore } from './storage/localStore';
@@ -12,7 +12,6 @@ import { History } from './ui/History';
 import { MobileBar } from './ui/MobileBar';
 import { SplitPanel } from './ui/SplitPanel';
 import { TopBar, type StepState } from './ui/TopBar';
-import { DesignLab } from './ui/design/DesignLab';
 import {
   blankBill,
   blankRow,
@@ -48,23 +47,11 @@ export default function App() {
   const [commonPolicy, setCommonPolicy] = useState<ResidualPolicy>({ kind: 'proRata' });
   const [cycles, setCycles] = useState<SavedCycle[]>(() => store.list());
   const [saved, setSaved] = useState(false);
-  // Dev-only escape hatch to the design lab at #design.
-  const [hash, setHash] = useState(() => window.location.hash);
-  useEffect(() => {
-    const onHash = () => setHash(window.location.hash);
-    window.addEventListener('hashchange', onHash);
-    return () => window.removeEventListener('hashchange', onHash);
-  }, []);
 
   const { result, issues } = useMemo(
     () => compute(bill, rows, commonRows, policy, commonPolicy),
     [bill, rows, commonRows, policy, commonPolicy],
   );
-
-  // #dir-* are the in-lab section anchors, so they must keep the lab mounted.
-  if (hash.startsWith('#design') || hash.startsWith('#dir-')) {
-    return <DesignLab onExit={() => { window.location.hash = ''; }} />;
-  }
 
   const apply = (cycle: SavedCycle, roll: boolean) => {
     const { bill: b, rows: r, commonRows: c } = roll ? nextCycleFrom(cycle) : fromCycle(cycle);
@@ -193,14 +180,6 @@ export default function App() {
             <p className="hint">
               Saved in this browser only. No account, nothing uploaded. Use Export in History for
               a backup you keep.
-            </p>
-          </div>
-          <div>
-            <p className="footer-heading">More</p>
-            <p className="hint">
-              <button className="link" onClick={() => (window.location.hash = 'design')}>
-                Design lab
-              </button>
             </p>
           </div>
         </div>

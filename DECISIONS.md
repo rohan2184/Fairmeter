@@ -352,7 +352,65 @@ project grows; CodePipeline is the in-AWS alternative. Recorded in `infra/README
 
 **Domain:** the CloudFront `*.cloudfront.net` address for now. A custom domain is an ACM
 certificate in us-east-1 plus `domainNames` on the existing distribution — an in-place
-update, so choosing to wait costs nothing later.
+update, so choosing to wait costs nothing later. Note that `minimumProtocolVersion` is
+deliberately **not** set until then: with the default CloudFront certificate its security
+policy is fixed by AWS and the setting is silently ignored, so stating it would only look
+like a guarantee that is not there.
+
+**Response headers, added in the same decision:** a `ResponseHeadersPolicy` carrying HSTS
+(one year, `includeSubdomains`, never `preload` from a domain that is not ours),
+`nosniff`, `X-Frame-Options: DENY`, `strict-origin-when-cross-origin`, a `Permissions-Policy`
+denying the device APIs, `Cross-Origin-Opener-Policy: same-origin`, and a CSP.
+
+The CSP allows **no `'unsafe-inline'` for scripts**. The one inline script in the product is
+the pre-paint theme pin, and its `sha256` is *computed from the built HTML at synth time*
+rather than pasted into the policy — editing that script can therefore never silently leave
+the policy behind and blank the site. `style-src` does keep `'unsafe-inline'`: `Rail.tsx`
+sets `flex-grow` from computed data and the status pages carry their CSS inline, and a hash
+list cannot cover style *attributes* regardless. `X-XSS-Protection` is deliberately not sent
+— it is obsolete and its filtering modes have been a vulnerability in their own right.
+
+---
+
+### D-16 — A missing page is a 404, not the app served under the wrong URL
+**Status:** ✅ Decided (2026-09-11)
+
+The reflex for a single-page app is to map every unmatched path to `index.html` with a 200.
+Fairmeter should not: after the design lab was removed it has **no client-side router at
+all** — it is one page, and the only hash it ever read is gone. A path that does not exist
+is genuinely not found. Rewriting it to a 200 would tell crawlers that every typo is a real
+page of identical content, and would tell a person with a broken link that they had arrived.
+
+**Decision:** custom status pages, with truthful status codes.
+
+- **`app/public/404.html`** — serves CloudFront's 404 *and* its 403. With Origin Access
+  Control and no `s3:ListBucket` grant, S3 answers a missing key with 403; translating it
+  back to 404 is what keeps the code honest.
+- **`app/public/50x.html`** — serves 500/502/503/504, each keeping its own status, cached
+  for 10 seconds so recovery is not held behind a stale error.
+- Both are **completely self-contained**: no bundle, no external stylesheet, no webfont, and
+  no script beyond the same pre-paint theme pin `index.html` uses. Whatever broke may be the
+  very thing that stops an external file loading, so these pages depend on nothing. They are
+  ~8 kB each and carry the token subset from `styles.css` inline, both themes included.
+- The illustration is the brand mark **in a failure state**: BRAND.md §2 defines it as two
+  unequal blocks on one rule spanning exactly their combined width, so here the blocks fall
+  short and the shortfall is drawn in the alert ink. The figure does not add up — which is
+  the one thing this product exists to prevent. Motion is a slow drift and pulse, dropped
+  entirely under `prefers-reduced-motion`.
+- Copy follows §10.2: what happened and what to do, sentence case, no apology and no "Oops".
+  Each page states that saved cycles are untouched, because "the site is broken" and "my
+  data is gone" are the same fear (D-03).
+
+**The design lab is retired** to `discard/design-lab/` in the same pass. It had already
+chosen the direction that shipped, and it was reaching production: a footer link, the
+`#design` hash, ~12.6 kB of the CSS bundle and eight Google Font families fetched at
+runtime. Removing it took the CSS from 36.5 kB to 23.9 kB and the gzipped JS from 83 kB to
+78 kB. `discard/README.md` records what else moved and what deliberately did not.
+
+**Consequence for hosting:** `base: '/'` is now stated in `vite.config.ts` rather than left
+to the default. The build emits absolute asset URLs and these pages link to `/`, so serving
+the site anywhere but a domain root breaks it. That is a deployment contract, not a
+preference, so it is written down.
 
 ---
 
