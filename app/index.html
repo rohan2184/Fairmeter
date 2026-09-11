@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="theme-color" content="#f2ece1" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#191b16" media="(prefers-color-scheme: dark)" />
+    <!-- Five files, latin, display: swap, no italics (BRAND.md §4.4). -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Instrument+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <title>Fairmeter</title>
+    <!--
+      Applied before first paint, so a theme pinned against the system's does not
+      flash the system's ground first. React re-applies the same attribute on
+      mount; "system" deliberately writes nothing and lets the CSS decide.
+    -->
+    <script>
+      try {
+        var t = localStorage.getItem('fairmeter:theme');
+        if (t === 'light' || t === 'dark') {
+          document.documentElement.setAttribute('data-theme', t);
+          document.querySelectorAll('meta[name="theme-color"]').forEach(function (m) {
+            m.content = t === 'dark' ? '#191b16' : '#f2ece1';
+          });
+        }
+      } catch (e) {
+        /* storage blocked — fall through to prefers-color-scheme */
+      }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

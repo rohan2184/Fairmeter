@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" role="img" aria-label="Fairmeter">
+  <!-- "Totals rule": two unequal blocks on one rule that spans exactly their
+       combined width. Block gap 2, rule weight 3, blocks-to-rule gap 3.
+       The 6px height step is fixed — the mark is not a chart. -->
+  <rect x="4" y="6" width="12" height="16" fill="#a8551f"/>
+  <rect x="18" y="12" width="10" height="10" fill="#6b7a4a"/>
+  <rect x="4" y="25" width="24" height="3" fill="#23281f"/>
+</svg>

@@ -1,0 +1,1631 @@
+/* ===========================================================================
+   Fairmeter — direction 2a, "Warm ledger".
+   BRAND.md §7: two token layers and no component layer.
+
+   1. Primitives — raw values, named for what they are. Legal only inside the
+      token block below.
+   2. Semantic — named for their job, referencing primitives. Everything else
+      in this file uses only these.
+
+   A raw hex or a primitive name outside this block is a bug. Theming is a
+   redefinition of semantic tokens only: the primitives never change between
+   light and dark, the mapping does.
+
+   Three theme modes (BRAND.md §7.2). The two mechanisms must agree, so the
+   dark map is stated twice against the same primitives and nothing else:
+
+     no data-theme        follow the system, via prefers-color-scheme
+     data-theme="light"   pinned light, even on a dark system
+     data-theme="dark"    pinned dark, even on a light system
+
+   CSS cannot share one declaration block between a media query and a plain
+   selector, so the dark map below is duplicated verbatim. Change one, change
+   the other.
+   =========================================================================== */
+
+:root {
+  /* --- primitives · colour, light ------------------------------------- */
+  --cream-050: #fdfbf6;  /* paper white, warm  */
+  --cream-100: #f2ece1;  /* the ledger sheet   */
+  --cream-200: #ebe3d2;  /* sunk cream         */
+  --sand-300:  #d6cdba;  /* hairline           */
+  --sand-400:  #c3b48f;  /* ruled line         */
+  --ink-600:   #635e50;  /* warm grey ink      */
+  --ink-900:   #23281f;  /* the ink — olive-black, never #000 */
+  --clay-500:  #b6602f;  /* accent hue at full brightness — DECORATIVE FILL ONLY, 4.3:1 */
+  --clay-600:  #a8551f;  /* the accent, text- and fill-safe */
+  --clay-700:  #8e461a;  /* accent pressed     */
+  --olive-500: #6b7a4a;  /* second household / positive fill */
+  --olive-700: #5b6a3c;  /* positive as text   */
+  --slate-600: #3f6470;  /* third household    */
+  --red-600:   #b23a2b;  /* alert              */
+  --red-050:   #f8e6e1;  /* alert fill         */
+
+  /* --- primitives · colour, dark -------------------------------------- */
+  --ink-950:   #191b16;
+  --ink-850:   #23261e;
+  --ink-975:   #131510;
+  --ink-800:   #1a1610;  /* ink on a light accent */
+  --sand-050:  #f0ece1;
+  --sand-200:  #a8a291;
+  --ink-700:   #3a3d33;
+  --ink-500:   #5c604f;
+  --clay-200:  #e8a771;  /* dark-theme accent hover — see the note in the dark map */
+  --clay-300:  #d98a4e;
+  --olive-300: #a3b573;
+  --slate-300: #7fb0bd;
+  --red-400:   #e8735c;
+  --red-950:   #3a221d;
+
+  /* --- primitives · type ---------------------------------------------- */
+  --face-display: "Fraunces", "Iowan Old Style", Georgia, "Times New Roman", serif;
+  --face-body: "Instrument Sans", -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+  --face-mono: "DM Mono", ui-monospace, "SF Mono", "Roboto Mono", Consolas, monospace;
+
+  --size-display: 30px;
+  --size-title: 22px;
+  --size-section: 18px;
+  --size-eyebrow: 12px;
+  --size-body: 15px;
+  --size-small: 13px;
+  --size-micro: 11px;
+
+  /* --- primitives · space, shape, motion ------------------------------ */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+
+  --radius-sm: 2px;  /* inputs, buttons, small controls */
+  --radius-md: 2px;  /* cards, tiles */
+  /* --radius-pill: unused — the direction is a ruled sheet, and a ruled sheet
+     has corners. 2px rather than 0 only so a 1px border isn't chipped at the join. */
+
+  --shadow-raised:  0 1px 2px rgba(35, 40, 31, 0.06);
+  --shadow-overlay: 0 8px 24px rgba(35, 40, 31, 0.14);  /* defined, currently unused */
+
+  --dur: 160ms;
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+
+  /* --- semantic · light (the default) --------------------------------- */
+  color-scheme: light;
+
+  --surface: var(--cream-100);
+  --surface-raised: var(--cream-050);
+  --surface-sunk: var(--cream-200);
+  --text: var(--ink-900);
+  --text-muted: var(--ink-600);
+  --border: var(--sand-300);
+  --border-strong: var(--sand-400);
+  --accent: var(--clay-600);
+  --accent-ink: var(--cream-050);
+  --accent-hover: var(--clay-700);
+  --alert: var(--red-600);
+  --alert-soft: var(--red-050);
+  --ok: var(--olive-700);
+  --focus: var(--clay-600);
+  --seg-1: var(--clay-600);
+  --seg-2: var(--olive-500);
+  --seg-3: var(--slate-600);
+}
+
+/* --- semantic · dark, chosen. Same roles, remapped explicitly, never derived. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --surface: var(--ink-950);
+  --surface-raised: var(--ink-850);
+  --surface-sunk: var(--ink-975);
+  --text: var(--sand-050);
+  --text-muted: var(--sand-200);
+  --border: var(--ink-700);
+  --border-strong: var(--ink-500);
+  --accent: var(--clay-300);
+  --accent-ink: var(--ink-800);
+  /* BRAND.md §3.8 lists no dark accent-hover, and every role must exist in
+     both themes. The accent is lighter than its ground here, so hover
+     brightens rather than darkens: --accent-ink on --clay-200 is 7.9:1. */
+  --accent-hover: var(--clay-200);
+  --alert: var(--red-400);
+  --alert-soft: var(--red-950);
+  --ok: var(--olive-300);
+  --focus: var(--clay-300);
+  --seg-1: var(--clay-300);
+  --seg-2: var(--olive-300);
+  --seg-3: var(--slate-300);
+}
+
+/* --- semantic · dark, inherited from the system. Verbatim copy of the map
+   above; it applies only while no explicit choice has been recorded. -------- */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    color-scheme: dark;
+
+    --surface: var(--ink-950);
+    --surface-raised: var(--ink-850);
+    --surface-sunk: var(--ink-975);
+    --text: var(--sand-050);
+    --text-muted: var(--sand-200);
+    --border: var(--ink-700);
+    --border-strong: var(--ink-500);
+    --accent: var(--clay-300);
+    --accent-ink: var(--ink-800);
+    --accent-hover: var(--clay-200);
+    --alert: var(--red-400);
+    --alert-soft: var(--red-950);
+    --ok: var(--olive-300);
+    --focus: var(--clay-300);
+    --seg-1: var(--clay-300);
+    --seg-2: var(--olive-300);
+    --seg-3: var(--slate-300);
+  }
+}
+
+/* ===========================================================================
+   Base
+   =========================================================================== */
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--face-body);
+  font-size: var(--size-body);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------------------------------------------------------------------------
+   The frame. Three full-bleed bands — bar, hero, footer — each with its own
+   ground, and one measure shared by everything inside them. `.page` is that
+   measure and nothing else: no band sets its own horizontal padding.
+   --------------------------------------------------------------------------- */
+
+.app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.page {
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 var(--space-5);
+}
+
+/* Anchored cards clear the sticky bar rather than hiding under it. */
+[id] { scroll-margin-top: 76px; }
+
+/* Every figure is tabular, inputs and inline amounts included (BRAND.md §4.3). */
+input,
+output,
+table,
+.stat-value,
+.rail-seg,
+.amount {
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- the ramp. Seven steps; if the size you want isn't here, the layout is
+   wrong (BRAND.md §4.2). ---------------------------------------------------- */
+
+h1,
+h2,
+h3 { font-weight: 600; }
+
+h1 {
+  margin: 0 0 var(--space-2);
+  font-family: var(--face-display);
+  font-size: var(--size-display);
+  line-height: 1.10;
+  letter-spacing: -0.02em;
+}
+
+h2 {
+  margin: 0 0 var(--space-1);
+  font-family: var(--face-display);
+  font-size: var(--size-section);
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+/* Sub-headings inside a card. */
+h3 {
+  margin: var(--space-5) 0 var(--space-2);
+  font-family: var(--face-body);
+  font-size: var(--size-eyebrow);
+  line-height: 1.30;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* "The split" is the one title-step heading on the page. */
+.result h2 {
+  font-size: var(--size-title);
+  line-height: 1.20;
+  letter-spacing: -0.015em;
+}
+
+.lede {
+  margin: 0 0 var(--space-3);
+  color: var(--text-muted);
+  max-width: 68ch;
+  text-wrap: pretty;
+}
+
+.hint {
+  font-size: var(--size-small);
+  line-height: 1.50;
+  color: var(--text-muted);
+}
+
+.note {
+  margin: var(--space-1) 0 0;
+  font-size: var(--size-small);
+  line-height: 1.50;
+  color: var(--text-muted);
+  max-width: 68ch;
+  text-wrap: pretty;
+}
+
+.units-origin {
+  display: block;
+  font-size: var(--size-micro);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
+}
+
+/* ===========================================================================
+   The mark
+   =========================================================================== */
+
+.lockup {
+  display: flex;
+  align-items: center;
+  gap: 11px;  /* half the symbol width */
+  flex: none;
+  font-family: var(--face-display);
+  font-size: var(--size-section);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.lockup .symbol { flex: none; }
+
+/* ===========================================================================
+   Top bar — the one thing that stays put. Name, where you are, theme.
+   =========================================================================== */
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.topbar-inner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  min-height: 60px;
+}
+
+/* The steps double as the progress read-out: the tick is the state, the chip
+   is the way there. Scrolls sideways rather than wrapping the bar to two rows. */
+.steps-nav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-left: auto;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.steps-nav::-webkit-scrollbar { display: none; }
+
+.step-chip {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: none;
+  padding: var(--space-1) var(--space-3);
+  min-height: 34px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-size: var(--size-small);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background-color var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+
+.step-chip:hover {
+  background: var(--surface-sunk);
+  color: var(--text);
+}
+
+.step-chip:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
+}
+
+.step-chip.done { color: var(--text); }
+
+.step-tick {
+  font-family: var(--face-mono);
+  font-size: var(--size-eyebrow);
+  color: var(--border-strong);
+}
+
+.step-chip.done .step-tick { color: var(--ok); }
+
+/* ===========================================================================
+   Hero — what the app does, and the answer it makes, side by side.
+   =========================================================================== */
+
+.hero {
+  background: var(--surface-sunk);
+  border-bottom: 1px solid var(--border);
+  padding: var(--space-8) 0;
+}
+
+.hero-inner {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-7);
+  align-items: center;
+}
+
+.hero-copy { max-width: 54ch; }
+
+.eyebrow {
+  margin: 0 0 var(--space-3);
+  font-family: var(--face-mono);
+  font-size: var(--size-micro);
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* Held to the ramp's display step and set narrow, so it reads as a block of
+   statement rather than a banner of one long line. */
+.hero h1 {
+  max-width: 16ch;
+  margin-bottom: var(--space-4);
+}
+
+.hero-lede {
+  margin: 0 0 var(--space-5);
+  color: var(--text-muted);
+  max-width: 56ch;
+  text-wrap: pretty;
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.hero-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  margin: var(--space-5) 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--size-small);
+  color: var(--text-muted);
+}
+
+.hero-facts li {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.hero-facts li::before {
+  content: "—";
+  color: var(--border-strong);
+}
+
+/* --- the specimen: the answer panel's own figure, shown before the form has
+   been touched, with an example in it. It becomes the live split the moment
+   there is one, so what was promised and what arrives are one object. ------- */
+
+.specimen {
+  margin: 0;
+  padding: var(--space-5);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-overlay);
+}
+
+.specimen-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-3);
+}
+
+.specimen-head .eyebrow { margin: 0; }
+
+.specimen-total {
+  font-family: var(--face-mono);
+  font-size: var(--size-title);
+  font-weight: 500;
+}
+
+.specimen .rail { margin: var(--space-3) 0 var(--space-4); }
+
+.specimen-rows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.specimen-rows li {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: var(--space-3);
+  align-items: baseline;
+  padding: var(--space-2) 0 var(--space-2) var(--space-3);
+  border-top: 1px solid var(--border);
+  border-left: 3px solid var(--seg-1);
+}
+
+.specimen-rows li[data-seg="2"] { border-left-color: var(--seg-2); }
+.specimen-rows li[data-seg="3"] { border-left-color: var(--seg-3); }
+
+.specimen-name { font-weight: 600; }
+
+.specimen-units {
+  font-family: var(--face-mono);
+  font-size: var(--size-small);
+  color: var(--text-muted);
+}
+
+.specimen-amount {
+  font-family: var(--face-mono);
+  font-size: var(--size-title);
+  font-weight: 500;
+}
+
+.specimen-foot {
+  margin: var(--space-4) 0 0;
+  font-size: var(--size-small);
+  color: var(--text-muted);
+}
+
+/* ===========================================================================
+   The working area — form on the left, the answer beside it.
+   =========================================================================== */
+
+.shell {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-5);
+  align-items: start;
+  padding-top: var(--space-6);
+}
+
+.shell-form { min-width: 0; }
+
+.shell-wide { padding-bottom: var(--space-7); }
+
+.shell .card:first-child,
+.shell-wide .card:first-child { margin-top: 0; }
+
+/* --- the answer panel ---------------------------------------------------- */
+
+/* Two classes deliberately: this block sits above `.card` in the file, and the
+   panel's own margin has to survive it. */
+.card.panel { margin: 0; }
+
+.panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.panel-head h2 {
+  margin: 0;
+  font-size: var(--size-title);
+  letter-spacing: -0.015em;
+}
+
+.panel-month {
+  font-family: var(--face-mono);
+  font-size: var(--size-small);
+  color: var(--text-muted);
+}
+
+.panel .shares {
+  grid-template-columns: 1fr;
+  margin: var(--space-3) 0;
+}
+
+.panel-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-3);
+  margin: 0;
+  padding-top: var(--space-2);
+  border-top: 2px solid var(--text);
+  font-size: var(--size-small);
+  font-weight: 600;
+}
+
+.panel-total-value {
+  font-family: var(--face-mono);
+  font-size: var(--size-title);
+  font-weight: 500;
+}
+
+.panel-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border);
+}
+
+.panel-actions button { width: 100%; }
+
+.panel-actions-split {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.panel-actions .hint { margin: 0; }
+
+/* Waiting for the form: the same panel, listing what it still needs. */
+.panel-waiting h3 { margin-top: 0; }
+
+.todo {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--size-small);
+}
+
+.todo li {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  border-top: 1px solid var(--border);
+}
+
+.todo li::before {
+  content: "○";
+  flex: none;
+  font-family: var(--face-mono);
+  color: var(--border-strong);
+}
+
+/* ===========================================================================
+   Bottom bar — the answer within reach on a narrow screen.
+   =========================================================================== */
+
+.mobilebar {
+  position: fixed;
+  inset: auto 0 0 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-2) var(--space-4);
+  background: var(--surface-raised);
+  border-top: 1px solid var(--border-strong);
+  box-shadow: var(--shadow-overlay);
+}
+
+.mobilebar-figure {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.mobilebar-label {
+  font-size: var(--size-micro);
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
+}
+
+.mobilebar-value {
+  font-family: var(--face-mono);
+  font-size: var(--size-title);
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+/* ===========================================================================
+   Footer band
+   =========================================================================== */
+
+/* Shown on paper only — the screen already says all of this in the top bar. */
+.print-only { display: none; }
+
+.site-footer {
+  margin-top: auto;
+  padding: var(--space-6) 0 var(--space-7);
+  background: var(--surface-sunk);
+  border-top: 1px solid var(--border);
+}
+
+.footer-inner {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-5);
+}
+
+.footer-inner p { margin: 0 0 var(--space-2); }
+
+.footer-name {
+  font-family: var(--face-display);
+  font-size: var(--size-section);
+  font-weight: 600;
+}
+
+.footer-heading {
+  font-size: var(--size-eyebrow);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* ===========================================================================
+   Theme toggle — three segments on one rule, the chosen one sunk into it.
+   =========================================================================== */
+
+.theme-toggle {
+  display: flex;
+  flex: none;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.theme-toggle .segment {
+  min-height: 34px;
+  padding: var(--space-1) var(--space-3);
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: var(--size-small);
+  font-weight: 400;
+}
+
+.theme-toggle .segment + .segment { border-left: 1px solid var(--border); }
+
+.theme-toggle .segment:hover:not([aria-pressed="true"]) {
+  background: var(--surface-sunk);
+  color: var(--text);
+}
+
+/* Sunk, not filled: the toggle is chrome, and the accent belongs to the
+   actions that change the numbers. */
+.theme-toggle .segment[aria-pressed="true"] {
+  background: var(--surface-sunk);
+  color: var(--text);
+  font-weight: 600;
+  cursor: default;
+}
+
+.theme-toggle .segment:active:not(:disabled) { transform: none; }
+
+.theme-toggle .segment:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
+}
+
+/* ===========================================================================
+   Card / section
+   =========================================================================== */
+
+.card {
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-raised);
+  padding: var(--space-5);
+  margin: var(--space-4) 0;
+}
+
+/* The card's own head: eyebrow, title, one line, and any title-line control. */
+.card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.card-headings { min-width: 0; }
+.card-head .lede { margin-bottom: 0; }
+.card-head .card-actions .row-actions,
+.card-head .card-actions.row-actions { margin-top: 0; }
+
+.step {
+  margin: 0 0 var(--space-1);
+  font-family: var(--face-mono);
+  font-size: var(--size-micro);
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* ===========================================================================
+   Disclosure — everything correct-by-default or rarely needed lives here.
+   Native <details>, so it prints, searches and works without JS. The summary
+   carries the current state on the right, which is what makes it safe to
+   leave shut.
+   =========================================================================== */
+
+.disclosure {
+  border-top: 1px solid var(--border);
+  margin-top: var(--space-3);
+}
+
+.disclosure > summary {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-2);
+  margin: 0 calc(var(--space-2) * -1);
+  min-height: 44px;
+  cursor: pointer;
+  list-style: none;
+  transition: background-color var(--dur) var(--ease);
+}
+
+.disclosure > summary::-webkit-details-marker { display: none; }
+
+.disclosure > summary:hover { background: var(--surface-sunk); }
+
+.disclosure > summary:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* A ledger uses a rule and a sign, not a rotating chevron. */
+.disclosure > summary::before {
+  content: "+";
+  flex: none;
+  width: 1ch;
+  font-family: var(--face-mono);
+  font-weight: 500;
+  color: var(--text);
+}
+
+.disclosure[open] > summary::before { content: "−"; }
+
+.disclosure-title {
+  font-size: var(--size-small);
+  font-weight: 600;
+}
+
+.disclosure-detail {
+  margin-left: auto;
+  font-family: var(--face-mono);
+  font-size: var(--size-small);
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.disclosure-body { padding: var(--space-1) 0 var(--space-4); }
+
+/* First h3 inside an opened fold would double the heading it sits under. */
+.disclosure-body > h3:first-child { margin-top: 0; }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-3) var(--space-4);
+}
+
+/* ===========================================================================
+   Field, inputs, controls
+   =========================================================================== */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.field-label {
+  font-size: var(--size-small);
+  font-weight: 600;
+}
+
+.field.wide { grid-column: span 2; }
+
+.unit {
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+/* The required star. Accent so it reads as the one thing being pointed at:
+   5.1:1 on the card in light, 5.7:1 in dark. Never the only signal — the input
+   carries aria-required, and section 2 opens with the legend. */
+.req {
+  margin-left: 2px;
+  color: var(--accent);
+  font-weight: 600;
+  cursor: help;
+}
+
+.req-legend { margin: 0 0 var(--space-4); }
+
+input[type="text"],
+input[type="number"],
+input[type="date"],
+select,
+.name {
+  font-family: var(--face-mono);
+  font-size: var(--size-body);
+  line-height: 1.4;
+  padding: 11px 12px;
+  min-height: 44px;
+  width: 100%;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface-sunk);
+  color: var(--text);
+  transition: border-color var(--dur) var(--ease);
+}
+
+select {
+  font-family: var(--face-body);
+  cursor: pointer;
+}
+
+input::placeholder { color: var(--text-muted); }
+
+input:focus-visible,
+select:focus-visible,
+input:focus,
+select:focus {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-color: var(--focus);
+}
+
+input:invalid {
+  border-color: var(--alert);
+  background: var(--alert-soft);
+}
+
+input:disabled,
+select:disabled {
+  color: var(--text-muted);
+  background: var(--surface);
+  border-style: dashed;
+  cursor: not-allowed;
+}
+
+/* Read-only computed output: shares the sunk fill, but no caret, no focus,
+   and a dashed rule so it can never be mistaken for something typeable. */
+.computed output {
+  display: block;
+  padding: 11px 12px;
+  min-height: 44px;
+  font-family: var(--face-mono);
+  font-size: var(--size-body);
+  color: var(--text-muted);
+  background: var(--surface-sunk);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-sm);
+}
+
+/* Checkbox / radio — the label is part of the hit area. */
+.toggle,
+.radios label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 44px;
+  font-size: var(--size-small);
+  cursor: pointer;
+}
+
+.toggle { white-space: nowrap; }
+
+input[type="checkbox"],
+input[type="radio"] {
+  width: 20px;
+  height: 20px;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  flex: none;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+input[type="checkbox"]:focus-visible,
+input[type="radio"]:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+input[type="checkbox"]:disabled,
+input[type="radio"]:disabled { cursor: not-allowed; }
+
+/* ===========================================================================
+   Buttons
+   =========================================================================== */
+
+button {
+  font-family: var(--face-body);
+  font-size: var(--size-body);
+  font-weight: 500;
+  line-height: 1.2;
+  padding: 12px 18px;
+  min-height: 44px;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: var(--accent-ink);
+  cursor: pointer;
+  transition: background-color var(--dur) var(--ease), border-color var(--dur) var(--ease);
+}
+
+button:hover:not(:disabled) {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+
+button:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+button:active:not(:disabled) { transform: translateY(1px); }
+
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* A link that is really a button: navigation that starts an action. Same face
+   as `button` so the hero's two calls to action are the same object twice. */
+a.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 18px;
+  min-height: 44px;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: var(--size-body);
+  font-weight: 500;
+  line-height: 1.2;
+  text-decoration: none;
+  transition: background-color var(--dur) var(--ease), border-color var(--dur) var(--ease);
+}
+
+a.button:hover {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+
+a.button:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+a.button.ghost {
+  background: transparent;
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+
+a.button.ghost:hover {
+  background: var(--surface-sunk);
+  border-color: var(--border-strong);
+}
+
+button.ghost {
+  background: transparent;
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+
+button.ghost:hover:not(:disabled) {
+  background: var(--surface-sunk);
+  border-color: var(--border-strong);
+}
+
+button.danger {
+  background: transparent;
+  color: var(--alert);
+  border-color: var(--border-strong);
+}
+
+button.danger:hover:not(:disabled) {
+  background: var(--alert-soft);
+  border-color: var(--alert);
+}
+
+.row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+  margin-top: var(--space-3);
+}
+
+.row-hint {
+  display: block;
+  margin: var(--space-2) 0 0;
+}
+
+/* A link that is really a button: for the one-off exits, never for an action
+   that changes the numbers. */
+button.link {
+  padding: 0;
+  min-height: 0;
+  border: none;
+  background: none;
+  color: var(--text);
+  font-size: var(--size-small);
+  font-weight: 400;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+button.link:hover:not(:disabled) {
+  background: none;
+  color: var(--accent);
+}
+
+/* ===========================================================================
+   Household rows
+   =========================================================================== */
+
+.households {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.household {
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+}
+
+/* A metered household owes what its own meter recorded; an unmetered one
+   absorbs the unaccounted units, so it is marked as the different thing it is. */
+.household.metered { border-left-color: var(--accent); }
+.household.unmetered { border-left-color: var(--border-strong); }
+
+.household-head {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.household-head .name {
+  flex: 1 1 200px;
+  font-family: var(--face-body);
+  font-weight: 600;
+}
+
+.readings { margin-top: var(--space-3); }
+
+/* The carried-forward prior reading spans the whole readings row (D-13). */
+.prior-note {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
+.policy {
+  margin-top: var(--space-5);
+  border-top: 1px solid var(--border);
+  padding-top: var(--space-3);
+}
+
+.radios {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.radios select {
+  width: auto;
+  min-width: 180px;
+}
+
+/* ===========================================================================
+   Provenance — how far the pre-filled rates can be trusted
+   =========================================================================== */
+
+.provenance {
+  margin: var(--space-3) 0 0;
+  padding-left: var(--space-3);
+  font-size: var(--size-micro);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
+  border-left: 3px solid var(--border-strong);
+  max-width: 78ch;
+}
+
+.provenance.verified { border-left-color: var(--ok); }
+
+.provenance.indicative {
+  border-left-color: var(--alert);
+  color: var(--text);
+}
+
+.notes {
+  margin: var(--space-2) 0 0;
+  padding-left: var(--space-5);
+  font-size: var(--size-small);
+  color: var(--text-muted);
+  max-width: 78ch;
+}
+
+.notes li { margin: var(--space-1) 0; }
+
+/* ===========================================================================
+   Result — stat tiles, ratio rail, breakdown table
+   =========================================================================== */
+
+/* --- what each household owes. The answer the app exists to produce, so it
+   is the largest thing on the page and needs nothing opened to be read. ---- */
+
+.shares {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: var(--space-3);
+  margin: var(--space-4) 0;
+}
+
+.share {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface-sunk);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--seg-1);
+  border-radius: var(--radius-md);
+}
+
+/* Same order and the same three hues as the rail above it, so a segment and a
+   card are recognisably the same household. */
+.share[data-seg="2"] { border-left-color: var(--seg-2); }
+.share[data-seg="3"] { border-left-color: var(--seg-3); }
+
+.share-name {
+  font-size: var(--size-small);
+  font-weight: 600;
+}
+
+.share-amount {
+  font-family: var(--face-mono);
+  font-size: var(--size-display);
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+}
+
+.share-meta {
+  font-family: var(--face-mono);
+  font-size: var(--size-small);
+  color: var(--text-muted);
+}
+
+.totals {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--space-2);
+  margin: var(--space-4) 0;
+}
+
+.stat {
+  background: var(--surface-sunk);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+}
+
+.stat-label {
+  display: block;
+  font-size: var(--size-small);
+  color: var(--text-muted);
+}
+
+.stat-value {
+  display: block;
+  font-family: var(--face-mono);
+  font-size: var(--size-title);
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.stat.strong {
+  border-color: var(--accent);
+  border-left-width: 3px;
+}
+
+.stat.warn {
+  border-color: var(--alert);
+  background: var(--alert-soft);
+}
+
+.stat.warn .stat-value,
+.stat.warn .stat-label { color: var(--text); }
+
+/* --- ratio rail (signature). Square, one segment per household, the label
+   carried inside it so colour is never the only signal. -------------------- */
+
+.rail {
+  display: flex;
+  gap: 3px;
+  height: 34px;
+  margin: var(--space-4) 0;
+  transform-origin: left center;
+  animation: rail-grow var(--dur) var(--ease);
+}
+
+@keyframes rail-grow {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+.rail-seg {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  flex-basis: 0;  /* so the segment's width is the share, nothing else */
+  min-width: 0;
+  padding: 0 11px;
+  background: var(--seg-1);
+  color: var(--accent-ink);
+  font-family: var(--face-mono);
+  font-size: var(--size-eyebrow);
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.rail-seg:nth-child(3n + 2) { background: var(--seg-2); }
+.rail-seg:nth-child(3n + 3) { background: var(--seg-3); }
+
+.rail-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: var(--face-body);
+  font-weight: 500;
+}
+
+/* In the narrow panel there is no room for a label inside a segment, so the
+   bar is bare and the share cards under it carry the names in the same order
+   and the same hues. */
+.rail.compact {
+  height: 10px;
+  margin: 0;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: var(--space-2) calc(var(--space-1) * -1);
+  padding: 0 var(--space-1);
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  font-family: var(--face-mono);
+  font-size: var(--size-small);
+}
+
+th,
+td {
+  padding: var(--space-2) var(--space-3);
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+th.num,
+td.num { text-align: right; }
+
+/* Column separators, and the header ruling off against the ink. */
+.breakdown th + th,
+.breakdown td + td { border-left: 1px solid var(--border-strong); }
+
+thead th {
+  font-family: var(--face-body);
+  font-size: var(--size-small);
+  font-weight: 600;
+}
+
+thead tr:last-child th { border-bottom: 1px solid var(--text); }
+
+thead .subhead th {
+  font-family: var(--face-mono);
+  font-weight: 400;
+  font-size: var(--size-eyebrow);
+  color: var(--text-muted);
+}
+
+/* Zebra rows fill the page ground against the raised card. */
+tbody tr:nth-child(even) { background: var(--surface); }
+
+.pct {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+/* No slant anywhere — no italic file is loaded, and a synthesised oblique in
+   a ledger serif is worse than no emphasis at all. */
+tbody .account-level td { color: var(--text-muted); }
+
+tfoot th {
+  border-top: 2px solid var(--text);
+  border-bottom: none;
+  font-family: var(--face-mono);
+  font-size: var(--size-body);
+  font-weight: 500;
+  padding-top: var(--space-3);
+  padding-bottom: var(--space-3);
+}
+
+tfoot th:first-child {
+  font-family: var(--face-display);
+  font-size: var(--size-section);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+/* ===========================================================================
+   Warnings and the conservation line
+   =========================================================================== */
+
+/* The fact, then what was done about it. The glyph carries the meaning
+   alongside the colour, never instead of it. */
+.warnings {
+  margin: var(--space-3) 0;
+  padding: var(--space-3);
+  list-style: none;
+  background: var(--alert-soft);
+  border-left: 3px solid var(--alert);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: var(--size-small);
+}
+
+.warnings li {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.warnings li + li { margin-top: var(--space-2); }
+
+.warnings li::before {
+  content: "!";
+  flex: none;
+  font-family: var(--face-mono);
+  font-weight: 500;
+  color: var(--alert);
+}
+
+.check {
+  margin: var(--space-3) 0 0;
+  font-size: var(--size-small);
+  font-weight: 500;
+}
+
+.check.ok { color: var(--ok); }
+.check.bad { color: var(--alert); }
+
+/* ===========================================================================
+   History
+   =========================================================================== */
+
+.history .hint { font-weight: 400; }
+
+.history td .row-actions { margin-top: 0; }
+
+/* ===========================================================================
+   Breakpoints. Two: 600px and 1024px. Below 1024 the answer cannot sit beside
+   the form, so it follows it and the bottom bar carries it in the meantime.
+   =========================================================================== */
+
+@media (max-width: 1023px) {
+  /* Clear of the fixed bottom bar. */
+  .app { padding-bottom: 76px; }
+}
+
+/* On a phone the bar holds the name and the theme and nothing else — the steps
+   would take the width the name needs, and the bottom bar is the way to the
+   answer anyway. */
+@media (max-width: 700px) {
+  .steps-nav { display: none; }
+}
+
+@media (max-width: 600px) {
+  .page { padding: 0 var(--space-4); }
+  .hero { padding: var(--space-6) 0; }
+  .hero h1 { font-size: 24px; }
+  .result h2 { font-size: 19px; }
+  .field.wide { grid-column: auto; }
+  .hero-actions button:not(.link),
+  .hero-actions a.button { flex: 1 1 auto; }
+  .panel-actions-split { flex-direction: column; }
+}
+
+@media (min-width: 900px) {
+  .hero-inner { grid-template-columns: 1.05fr 0.95fr; }
+}
+
+@media (min-width: 1024px) {
+  .card { padding: var(--space-5) var(--space-6); }
+  .shell { grid-template-columns: minmax(0, 1fr) 360px; }
+  .shell-aside {
+    position: sticky;
+    top: 76px;
+  }
+  /* The panel is the one card that must never scroll off; if the split has more
+     households than fit, it scrolls inside itself. */
+  .shell-aside .card {
+    padding: var(--space-5);
+    max-height: calc(100vh - 92px);
+    overflow-y: auto;
+  }
+  .mobilebar { display: none; }
+}
+
+/* ===========================================================================
+   Motion
+   =========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ===========================================================================
+   Print — always light, whatever the screen theme, and legible in one ink
+   because it will be photocopied (BRAND.md §10.4).
+   =========================================================================== */
+
+@media print {
+  /* [data-theme] is listed so this outweighs the pinned-dark map, which is a
+     more specific selector than a bare :root. */
+  :root,
+  :root[data-theme] {
+    color-scheme: light;
+
+    --surface: var(--cream-050);
+    --surface-raised: var(--cream-050);
+    --surface-sunk: var(--cream-050);
+    --text: var(--ink-900);
+    --text-muted: var(--ink-600);
+    --border: var(--sand-300);
+    --border-strong: var(--sand-400);
+    --accent: var(--clay-600);
+    --accent-ink: var(--cream-050);
+    --accent-hover: var(--clay-700);
+    --alert: var(--red-600);
+    --alert-soft: var(--cream-050);
+    --ok: var(--olive-700);
+    --focus: var(--clay-600);
+    --seg-1: var(--cream-050);
+    --seg-2: var(--cream-050);
+    --seg-3: var(--cream-050);
+  }
+
+  .print-hide { display: none !important; }
+
+  /* Paper is one column, and nothing on it sticks or scrolls: the answer
+     prints above its working, in the order it was read on screen. */
+  .app { display: block; }
+
+  .shell,
+  .shell-wide { padding: 0; }
+
+  .shell { display: block; }
+
+  /* The sheet handed to a household is the answer and its working, not the
+     form that produced it — every figure typed in appears in the breakdown. */
+  .shell-form { display: none; }
+
+  .print-only { display: block; }
+
+  .print-head {
+    margin-bottom: var(--space-4);
+    padding-bottom: var(--space-2);
+    border-bottom: 2px solid var(--text);
+    font-family: var(--face-display);
+    font-size: var(--size-title);
+    font-weight: 600;
+  }
+
+  .shell-aside,
+  .shell-aside .card {
+    position: static;
+    max-height: none;
+    overflow: visible;
+  }
+
+  /* Paper has no folds: everything behind a disclosure prints open, without
+     the control that opened it. */
+  .disclosure > summary { display: none !important; }
+  .disclosure-body { display: block !important; }
+  .disclosure::details-content {
+    content-visibility: visible;
+    block-size: auto;
+  }
+
+  body { background: var(--surface-raised); }
+
+  .page {
+    max-width: none;
+    padding: 0;
+  }
+
+  .card {
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    margin: 0 0 var(--space-4);
+    break-inside: avoid;
+  }
+
+  .table-scroll { overflow: visible; }
+
+  th,
+  td { white-space: normal; }
+
+  /* Household identity degrades to the label each segment already carried:
+     the segments separate by their rule and their width, not by colour. */
+  .rail { animation: none; }
+
+  .rail-seg {
+    color: var(--text);
+    border: 1px solid var(--text);
+  }
+}

@@ -1,0 +1,406 @@
+/* Design lab — dev-only. Every rule here is scoped under .lab so it cannot
+   leak into the real app. Three candidate directions for Fairmeter, each
+   rendered as a working screen rather than a swatch sheet. */
+
+@import url('https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,400..800&family=Public+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Fraunces:opsz,wght@9..144,400..700&family=Roboto+Mono:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Hanken+Grotesk:wght@400;500;600;800&family=DM+Mono:wght@400;500&display=swap');
+
+/* ---------- lab chrome: deliberately neutral so it doesn't fight the specimens ---------- */
+
+.lab {
+  --chrome-bg: #101214;
+  --chrome-ink: #e9ecef;
+  --chrome-muted: #99a1aa;
+  --chrome-line: #2a2f35;
+  min-height: 100vh;
+  background: var(--chrome-bg);
+  color: var(--chrome-ink);
+  font: 15px/1.55 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+.lab-bar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  padding: 12px 20px;
+  background: rgba(16, 18, 20, 0.92);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--chrome-line);
+}
+.lab-bar strong { font-size: 14px; letter-spacing: 0.02em; margin-right: 4px; }
+.lab-bar .spacer { flex: 1; }
+.lab-bar button {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--chrome-line);
+  background: transparent;
+  color: var(--chrome-ink);
+  cursor: pointer;
+}
+.lab-bar button:hover { border-color: #4a525b; }
+.lab-bar button[aria-pressed='true'] { background: var(--chrome-ink); color: var(--chrome-bg); border-color: var(--chrome-ink); }
+.lab-bar button:focus-visible { outline: 2px solid #7aa2ff; outline-offset: 2px; }
+
+.lab-intro { max-width: 780px; padding: 28px 20px 8px; }
+.lab-intro h1 { margin: 0 0 8px; font-size: 22px; letter-spacing: -0.01em; }
+.lab-intro p { margin: 0 0 8px; color: var(--chrome-muted); }
+.lab-intro code { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; }
+
+.lab-section { padding: 26px 20px 8px; max-width: 1180px; }
+.lab-section > h2 {
+  margin: 0 0 2px;
+  font-size: 13px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--chrome-muted);
+}
+.lab-section > h2 b { color: var(--chrome-ink); font-weight: 700; letter-spacing: 0.06em; }
+.lab-thesis { margin: 0 0 16px; max-width: 74ch; color: var(--chrome-muted); font-size: 14px; }
+.lab-thesis em { color: var(--chrome-ink); font-style: normal; }
+
+.lab-foot { padding: 40px 20px 80px; max-width: 780px; color: var(--chrome-muted); font-size: 14px; }
+
+/* ---------- the specimen frame ---------- */
+
+.dir {
+  border: 1px solid var(--chrome-line);
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--l-bg);
+  color: var(--l-ink);
+  font-family: var(--l-body);
+}
+
+/* =====================================================================
+   DIRECTION A — INSTRUMENT PANEL
+   Source: the energy meter itself. Graphite enclosure, LCD readout,
+   the red 1000-imp/kWh pulse LED. Precision is the product's claim.
+   ===================================================================== */
+
+.dir[data-dir='instrument'] {
+  --l-bg: #0f1513;
+  --l-card: #19221f;
+  --l-sunk: #121a18;
+  --l-ink: #e8efea;
+  --l-muted: #7d8c85;
+  --l-line: #28332f;
+  --l-accent: #b6d94c;
+  --l-accent-ink: #0f1513;
+  --l-alert: #ff4a38;
+  --l-seg1: #b6d94c;
+  --l-seg2: #4fbfa0;
+  --l-seg3: #3f5a52;
+  --l-radius: 4px;
+  --l-display: 'Archivo', system-ui, sans-serif;
+  --l-body: 'Public Sans', system-ui, sans-serif;
+  --l-mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+.dir[data-dir='instrument'][data-mode='light'] {
+  --l-bg: #e4e9e4;
+  --l-card: #f5f7f4;
+  --l-sunk: #dbe1da;
+  --l-ink: #101815;
+  --l-muted: #5d6b64;
+  --l-line: #c6cec7;
+  --l-accent: #35633a;
+  --l-accent-ink: #ffffff;
+  --l-alert: #c02f1d;
+  --l-seg1: #35633a;
+  --l-seg2: #2b7d75;
+  --l-seg3: #a9b5ad;
+}
+
+/* =====================================================================
+   DIRECTION B — COLUMNAR LEDGER
+   Source: the accountant's green columnar pad and the handwritten
+   register this app replaces. Light-first so screen and print agree.
+   ===================================================================== */
+
+.dir[data-dir='ledger'] {
+  --l-bg: #edf1e9;
+  --l-card: #fbfcf9;
+  --l-sunk: #f2f5ee;
+  --l-ink: #1b2a20;
+  --l-muted: #6b7a6e;
+  --l-line: #cfdac9;
+  --l-rule: #9fbe9b;
+  --l-accent: #2f5d3c;
+  --l-accent-ink: #ffffff;
+  --l-alert: #c0392b;
+  --l-seg1: #2f5d3c;
+  --l-seg2: #7ba07f;
+  --l-seg3: #c3d2bd;
+  --l-radius: 2px;
+  --l-display: 'Fraunces', Georgia, serif;
+  --l-body: 'Public Sans', system-ui, sans-serif;
+  --l-mono: 'Roboto Mono', ui-monospace, monospace;
+}
+.dir[data-dir='ledger'][data-mode='dark'] {
+  --l-bg: #121a14;
+  --l-card: #1a231b;
+  --l-sunk: #161f18;
+  --l-ink: #e7ede5;
+  --l-muted: #8b9a8c;
+  --l-line: #2c3a2e;
+  --l-rule: #3c5540;
+  --l-accent: #8fcf9b;
+  --l-accent-ink: #101710;
+  --l-alert: #e4685c;
+  --l-seg1: #8fcf9b;
+  --l-seg2: #58907f;
+  --l-seg3: #35473a;
+}
+
+/* =====================================================================
+   DIRECTION C — WIRING CODE
+   Source: Indian house wiring colours — live, neutral, earth. Each
+   household keeps one wire colour across form, table, message, print.
+   ===================================================================== */
+
+.dir[data-dir='wiring'] {
+  --l-bg: #f5f4f0;
+  --l-card: #ffffff;
+  --l-sunk: #edece7;
+  --l-ink: #14161a;
+  --l-muted: #6a6f78;
+  --l-line: #dedcd5;
+  --l-accent: #8c4a2f;
+  --l-accent-ink: #ffffff;
+  --l-alert: #b3401f;
+  --l-seg1: #8c4a2f;
+  --l-seg2: #1d4e89;
+  --l-seg3: #3e7a3a;
+  --l-caution: #e5b93c;
+  --l-radius: 14px;
+  --l-display: 'Bricolage Grotesque', system-ui, sans-serif;
+  --l-body: 'Hanken Grotesk', system-ui, sans-serif;
+  --l-mono: 'DM Mono', ui-monospace, monospace;
+}
+.dir[data-dir='wiring'][data-mode='dark'] {
+  --l-bg: #15171c;
+  --l-card: #1d2026;
+  --l-sunk: #191c21;
+  --l-ink: #eceef0;
+  --l-muted: #949aa4;
+  --l-line: #2e323a;
+  --l-accent: #d08a63;
+  --l-accent-ink: #1a1206;
+  --l-alert: #e97a55;
+  --l-seg1: #d08a63;
+  --l-seg2: #7ba6de;
+  --l-seg3: #86c57f;
+}
+
+/* ---------- identity block ---------- */
+
+.id-block {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 22px;
+  padding: 26px;
+  background: var(--l-card);
+  border-bottom: 1px solid var(--l-line);
+}
+@media (max-width: 760px) { .id-block { grid-template-columns: 1fr; } }
+
+.lockup { display: flex; align-items: center; gap: 14px; }
+.lockup svg { flex: none; }
+.wordmark {
+  font-family: var(--l-display);
+  font-size: 34px;
+  line-height: 1;
+  color: var(--l-ink);
+}
+.dir[data-dir='instrument'] .wordmark {
+  font-weight: 700;
+  font-stretch: 118%;
+  letter-spacing: -0.015em;
+  text-transform: uppercase;
+  font-size: 30px;
+}
+.dir[data-dir='ledger'] .wordmark { font-weight: 600; font-variation-settings: 'opsz' 120, 'SOFT' 0; letter-spacing: -0.02em; }
+.dir[data-dir='wiring'] .wordmark { font-weight: 800; letter-spacing: -0.035em; }
+.wordmark .mk-fair { opacity: 1; }
+.dir[data-dir='wiring'] .wordmark .mk-meter { color: var(--l-seg2); }
+.dir[data-dir='instrument'] .wordmark .mk-meter { color: var(--l-accent); }
+
+.tagline {
+  margin: 12px 0 0;
+  font-size: 14px;
+  color: var(--l-muted);
+  max-width: 44ch;
+}
+.rationale { margin: 14px 0 0; font-size: 13px; line-height: 1.6; color: var(--l-muted); max-width: 60ch; }
+.rationale b { color: var(--l-ink); font-weight: 600; }
+
+.favicons { display: flex; align-items: flex-end; gap: 16px; margin-top: 18px; }
+.favicon-cell { text-align: center; }
+.favicon-cell span { display: block; margin-top: 6px; font-size: 10px; color: var(--l-muted); font-family: var(--l-mono); }
+.favicon-chrome {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px 5px 7px;
+  border-radius: 8px 8px 0 0;
+  background: var(--l-sunk);
+  border: 1px solid var(--l-line);
+  border-bottom: none;
+  font-size: 11px;
+  color: var(--l-muted);
+}
+
+/* ---------- palette ---------- */
+
+.swatches { display: grid; grid-template-columns: repeat(auto-fit, minmax(132px, 1fr)); gap: 10px; }
+.swatch { border: 1px solid var(--l-line); border-radius: var(--l-radius); overflow: hidden; background: var(--l-card); }
+.swatch .chip { height: 46px; }
+.swatch .meta { padding: 7px 9px; }
+.swatch .role { display: block; font-size: 12px; font-weight: 600; }
+.swatch .hex { display: block; font-family: var(--l-mono); font-size: 11px; color: var(--l-muted); }
+.swatch .use { display: block; margin-top: 3px; font-size: 11px; color: var(--l-muted); line-height: 1.4; }
+
+/* ---------- type specimen ---------- */
+
+.type-spec { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 18px; }
+.spec { border: 1px solid var(--l-line); border-radius: var(--l-radius); padding: 14px; background: var(--l-card); }
+.spec .spec-role { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--l-muted); }
+.spec .spec-name { font-size: 13px; font-weight: 600; margin: 2px 0 10px; }
+.spec .spec-sample { color: var(--l-ink); }
+.spec-display { font-family: var(--l-display); font-size: 27px; line-height: 1.12; letter-spacing: -0.02em; }
+.dir[data-dir='instrument'] .spec-display { font-stretch: 115%; font-weight: 700; }
+.spec-body { font-family: var(--l-body); font-size: 14px; line-height: 1.6; }
+.spec-mono { font-family: var(--l-mono); font-size: 17px; font-variant-numeric: tabular-nums; line-height: 1.5; }
+
+/* ---------- the mock screen ---------- */
+
+.pane { padding: 24px 26px 30px; }
+.pane + .pane { border-top: 1px solid var(--l-line); }
+.pane-title {
+  margin: 0 0 14px;
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--l-muted);
+  font-family: var(--l-mono);
+}
+
+.screen { display: flex; flex-direction: column; gap: 16px; }
+
+.scr-head { display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: baseline; }
+.scr-head h3 { margin: 0; font-family: var(--l-display); font-size: 21px; font-weight: 700; letter-spacing: -0.02em; }
+.dir[data-dir='instrument'] .scr-head h3 { font-stretch: 112%; text-transform: uppercase; letter-spacing: 0.01em; font-size: 18px; }
+.scr-head .meta { font-size: 12px; color: var(--l-muted); font-family: var(--l-mono); }
+
+/* Signature A: the ratio rail — one bar, segmented by household, that is the
+   single ratio every charge is divided by. */
+.rail-wrap { display: flex; flex-direction: column; gap: 7px; }
+.rail { display: flex; height: 14px; border-radius: 2px; overflow: hidden; background: var(--l-sunk); }
+.dir[data-dir='wiring'] .rail { height: 18px; border-radius: 999px; }
+.rail span { display: block; }
+.rail .s1 { background: var(--l-seg1); }
+.rail .s2 { background: var(--l-seg2); }
+.rail .s3 { background: var(--l-seg3); }
+.rail-key { display: flex; flex-wrap: wrap; gap: 4px 18px; font-size: 12px; color: var(--l-muted); }
+.rail-key i { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 6px; vertical-align: baseline; }
+.dir[data-dir='wiring'] .rail-key i { border-radius: 999px; }
+.rail-key b { color: var(--l-ink); font-weight: 600; font-family: var(--l-mono); }
+
+.scr-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(126px, 1fr)); gap: 8px; }
+.scr-stat { border: 1px solid var(--l-line); border-radius: var(--l-radius); padding: 9px 11px; background: var(--l-card); }
+.scr-stat .k { display: block; font-size: 10px; letter-spacing: 0.09em; text-transform: uppercase; color: var(--l-muted); }
+.scr-stat .v { display: block; margin-top: 3px; font-size: 21px; font-weight: 700; font-family: var(--l-mono); font-variant-numeric: tabular-nums; }
+.scr-stat.hero { border-color: var(--l-accent); }
+.scr-stat.hero .v { color: var(--l-accent); }
+.scr-stat.flag { border-color: var(--l-alert); }
+.scr-stat.flag .v { color: var(--l-alert); }
+/* Instrument: stat tiles read as sunk LCD windows. */
+.dir[data-dir='instrument'] .scr-stat { background: var(--l-sunk); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03); }
+.dir[data-dir='instrument'] .scr-stat .v { letter-spacing: 0.01em; }
+.dir[data-dir='ledger'] .scr-stat { border-width: 0 0 2px 0; border-bottom-style: solid; border-radius: 0; background: transparent; padding-left: 0; }
+.dir[data-dir='wiring'] .scr-stat { border-width: 0; background: var(--l-sunk); padding: 12px 14px; }
+
+.scr-warn {
+  display: flex;
+  gap: 10px;
+  font-size: 13px;
+  padding: 10px 12px;
+  border-radius: var(--l-radius);
+  border: 1px solid var(--l-alert);
+  color: var(--l-ink);
+  background: color-mix(in srgb, var(--l-alert) 9%, transparent);
+}
+.scr-warn .pip { flex: none; font-family: var(--l-mono); color: var(--l-alert); font-weight: 700; }
+.dir[data-dir='ledger'] .scr-warn { border-width: 0 0 0 3px; border-radius: 0; background: transparent; color: var(--l-alert); }
+.dir[data-dir='wiring'] .scr-warn { border-color: transparent; background: color-mix(in srgb, var(--l-caution) 26%, transparent); }
+.dir[data-dir='wiring'] .scr-warn .pip { color: var(--l-ink); }
+
+.scr-table-wrap { overflow-x: auto; }
+.scr-table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; font-size: 13px; }
+.scr-table th, .scr-table td { padding: 7px 12px; text-align: left; white-space: nowrap; }
+.scr-table .num { text-align: right; font-family: var(--l-mono); }
+.scr-table thead th { font-size: 12px; border-bottom: 1px solid var(--l-line); }
+.scr-table thead .sub th { font-weight: 500; color: var(--l-muted); font-size: 11px; padding-top: 0; }
+.scr-table thead .sub .pct { font-family: var(--l-mono); }
+.scr-table tbody td { border-bottom: 1px solid var(--l-line); }
+.scr-table tbody .acct td { color: var(--l-muted); font-style: italic; }
+.scr-table tfoot th { border-top: 2px solid var(--l-ink); font-size: 14px; padding-top: 9px; }
+.scr-table tfoot .num { font-weight: 700; }
+/* Ledger: real ruled columns behind the figures. */
+.dir[data-dir='ledger'] .scr-table tbody tr:nth-child(odd) { background: color-mix(in srgb, var(--l-rule) 16%, transparent); }
+.dir[data-dir='ledger'] .scr-table th + th,
+.dir[data-dir='ledger'] .scr-table td + td { border-left: 1px solid var(--l-rule); }
+.dir[data-dir='ledger'] .scr-table tbody td { border-bottom: none; }
+/* Wiring: each household column carries its wire colour. */
+.dir[data-dir='wiring'] .scr-table .c1 { box-shadow: inset 3px 0 0 var(--l-seg1); }
+.dir[data-dir='wiring'] .scr-table .c2 { box-shadow: inset 3px 0 0 var(--l-seg2); }
+
+.scr-check { margin: 0; font-size: 13px; font-weight: 600; color: var(--l-accent); }
+.dir[data-dir='ledger'] .scr-check { font-family: var(--l-display); font-weight: 500; font-size: 15px; }
+
+.scr-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.btn {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 15px;
+  border-radius: var(--l-radius);
+  border: 1px solid transparent;
+  background: var(--l-accent);
+  color: var(--l-accent-ink);
+  cursor: pointer;
+}
+.btn.ghost { background: transparent; color: var(--l-ink); border-color: var(--l-line); }
+.dir[data-dir='instrument'] .btn { text-transform: uppercase; letter-spacing: 0.07em; font-size: 12px; }
+.dir[data-dir='wiring'] .btn { border-radius: 999px; padding: 9px 18px; }
+.dir[data-dir='ledger'] .btn.ghost { border-style: dashed; }
+
+/* ---------- form fragment ---------- */
+
+.scr-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px 14px; }
+.fld { display: flex; flex-direction: column; gap: 5px; }
+.fld label { font-size: 12px; font-weight: 600; }
+.fld label em { font-style: normal; font-weight: 400; color: var(--l-muted); }
+.fld .box {
+  font-family: var(--l-mono);
+  font-size: 14px;
+  padding: 8px 10px;
+  border: 1px solid var(--l-line);
+  border-radius: var(--l-radius);
+  background: var(--l-sunk);
+  color: var(--l-ink);
+}
+.fld .box.focus { border-color: var(--l-accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--l-accent) 30%, transparent); }
+.dir[data-dir='ledger'] .fld .box { border-width: 0 0 1px 0; border-radius: 0; background: transparent; padding-left: 0; }
+.dir[data-dir='wiring'] .fld .box { border-color: transparent; background: var(--l-sunk); }
+
+/* ---------- signature C: cable cross-section ---------- */
+
+.cable { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+.cable-legend { font-size: 12px; color: var(--l-muted); line-height: 1.7; }
+.cable-legend b { color: var(--l-ink); font-family: var(--l-mono); font-weight: 500; }

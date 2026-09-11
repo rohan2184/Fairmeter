@@ -1,0 +1,402 @@
+{
+  "version": 1,
+  "cycles": [
+    {
+      "id": "sheet-apr-may-25",
+      "savedAt": "2025-08-30T19:53:49Z",
+      "label": "Apr-May-25 (from the spreadsheet)",
+      "bill": {
+        "providerId": "custom",
+        "planId": "total-only",
+        "billingMonth": "Apr-May-25",
+        "readingDate": "",
+        "officialMeter": {
+          "previous": 0,
+          "present": 268.0,
+          "multiplier": 1
+        },
+        "sanctionedLoadKw": 1,
+        "billingMonths": 2,
+        "rates": {
+          "billTotal": 2370.0
+        },
+        "printedPayable": 2370.0
+      },
+      "households": [
+        {
+          "id": "ground",
+          "name": "Ground floor",
+          "metered": false,
+          "previous": 0,
+          "present": 0,
+          "multiplier": 1
+        },
+        {
+          "id": "first",
+          "name": "First floor",
+          "metered": true,
+          "previous": 8110.4,
+          "present": 8266.0,
+          "multiplier": 1
+        }
+      ],
+      "commonMeters": [
+        {
+          "id": "motor",
+          "name": "Motor / water pump",
+          "previous": 530.3,
+          "present": 537.5,
+          "multiplier": 1
+        }
+      ],
+      "policy": {
+        "kind": "proRata"
+      },
+      "commonPolicy": {
+        "kind": "proRata"
+      }
+    },
+    {
+      "id": "sheet-jun-jul-25",
+      "savedAt": "2025-08-30T20:59:30Z",
+      "label": "Jun-Jul-25 (from the spreadsheet)",
+      "bill": {
+        "providerId": "custom",
+        "planId": "total-only",
+        "billingMonth": "Jun-Jul-25",
+        "readingDate": "",
+        "officialMeter": {
+          "previous": 0,
+          "present": 241.0,
+          "multiplier": 1
+        },
+        "sanctionedLoadKw": 1,
+        "billingMonths": 2,
+        "rates": {
+          "billTotal": 2170.0
+        },
+        "printedPayable": 2170.0
+      },
+      "households": [
+        {
+          "id": "ground",
+          "name": "Ground floor",
+          "metered": false,
+          "previous": 0,
+          "present": 0,
+          "multiplier": 1
+        },
+        {
+          "id": "first",
+          "name": "First floor",
+          "metered": true,
+          "previous": 8266.0,
+          "present": 8421.0,
+          "multiplier": 1
+        }
+      ],
+      "commonMeters": [
+        {
+          "id": "motor",
+          "name": "Motor / water pump",
+          "previous": 537.5,
+          "present": 544.6,
+          "multiplier": 1
+        }
+      ],
+      "policy": {
+        "kind": "proRata"
+      },
+      "commonPolicy": {
+        "kind": "proRata"
+      }
+    },
+    {
+      "id": "sheet-aug-sep-25",
+      "savedAt": "2025-10-01T21:00:20Z",
+      "label": "Aug-Sep-25 (from the spreadsheet)",
+      "bill": {
+        "providerId": "custom",
+        "planId": "total-only",
+        "billingMonth": "Aug-Sep-25",
+        "readingDate": "",
+        "officialMeter": {
+          "previous": 0,
+          "present": 303.0,
+          "multiplier": 1
+        },
+        "sanctionedLoadKw": 1,
+        "billingMonths": 2,
+        "rates": {
+          "billTotal": 2740.0
+        },
+        "printedPayable": 2740.0
+      },
+      "households": [
+        {
+          "id": "ground",
+          "name": "Ground floor",
+          "metered": false,
+          "previous": 0,
+          "present": 0,
+          "multiplier": 1
+        },
+        {
+          "id": "first",
+          "name": "First floor",
+          "metered": true,
+          "previous": 8421.0,
+          "present": 8584.1,
+          "multiplier": 1
+        }
+      ],
+      "commonMeters": [
+        {
+          "id": "motor",
+          "name": "Motor / water pump",
+          "previous": 544.6,
+          "present": 552.8,
+          "multiplier": 1
+        }
+      ],
+      "submeterReadingDate": "2025-10-01",
+      "policy": {
+        "kind": "proRata"
+      },
+      "commonPolicy": {
+        "kind": "proRata"
+      }
+    },
+    {
+      "id": "sheet-oct-nov-25",
+      "savedAt": "2025-12-03T19:50:34Z",
+      "label": "Oct-Nov-25 (from the spreadsheet)",
+      "bill": {
+        "providerId": "custom",
+        "planId": "total-only",
+        "billingMonth": "Oct-Nov-25",
+        "readingDate": "",
+        "officialMeter": {
+          "previous": 0,
+          "present": 281.0,
+          "multiplier": 1
+        },
+        "sanctionedLoadKw": 1,
+        "billingMonths": 2,
+        "rates": {
+          "billTotal": 2530.0
+        },
+        "printedPayable": 2530.0
+      },
+      "households": [
+        {
+          "id": "ground",
+          "name": "Ground floor",
+          "metered": false,
+          "previous": 0,
+          "present": 0,
+          "multiplier": 1
+        },
+        {
+          "id": "first",
+          "name": "First floor",
+          "metered": true,
+          "previous": 8584.1,
+          "present": 8744.3,
+          "multiplier": 1
+        }
+      ],
+      "commonMeters": [
+        {
+          "id": "motor",
+          "name": "Motor / water pump",
+          "previous": 552.8,
+          "present": 561.3,
+          "multiplier": 1
+        }
+      ],
+      "submeterPreviousDate": "2025-10-01",
+      "submeterReadingDate": "2025-12-03",
+      "policy": {
+        "kind": "proRata"
+      },
+      "commonPolicy": {
+        "kind": "proRata"
+      }
+    },
+    {
+      "id": "sheet-dec-jan-26",
+      "savedAt": "2026-02-04T11:11:15Z",
+      "label": "Dec-Jan-26 (from the spreadsheet)",
+      "bill": {
+        "providerId": "custom",
+        "planId": "total-only",
+        "billingMonth": "Dec-Jan-26",
+        "readingDate": "",
+        "officialMeter": {
+          "previous": 0,
+          "present": 200.0,
+          "multiplier": 1
+        },
+        "sanctionedLoadKw": 1,
+        "billingMonths": 2,
+        "rates": {
+          "billTotal": 1790.0
+        },
+        "printedPayable": 1790.0
+      },
+      "households": [
+        {
+          "id": "ground",
+          "name": "Ground floor",
+          "metered": false,
+          "previous": 0,
+          "present": 0,
+          "multiplier": 1
+        },
+        {
+          "id": "first",
+          "name": "First floor",
+          "metered": true,
+          "previous": 8744.3,
+          "present": 8821.0,
+          "multiplier": 1
+        }
+      ],
+      "commonMeters": [
+        {
+          "id": "motor",
+          "name": "Motor / water pump",
+          "previous": 561.3,
+          "present": 566.0,
+          "multiplier": 1
+        }
+      ],
+      "submeterPriorDate": "2025-10-01",
+      "submeterPreviousDate": "2025-12-03",
+      "submeterReadingDate": "2026-02-04",
+      "policy": {
+        "kind": "proRata"
+      },
+      "commonPolicy": {
+        "kind": "proRata"
+      }
+    },
+    {
+      "id": "sheet-feb-mar-26",
+      "savedAt": "2026-04-07T19:17:29Z",
+      "label": "Feb-Mar-26 (from the spreadsheet)",
+      "bill": {
+        "providerId": "custom",
+        "planId": "total-only",
+        "billingMonth": "Feb-Mar-26",
+        "readingDate": "",
+        "officialMeter": {
+          "previous": 0,
+          "present": 213.0,
+          "multiplier": 1
+        },
+        "sanctionedLoadKw": 1,
+        "billingMonths": 2,
+        "rates": {
+          "billTotal": 1920.0
+        },
+        "printedPayable": 1920.0
+      },
+      "households": [
+        {
+          "id": "ground",
+          "name": "Ground floor",
+          "metered": false,
+          "previous": 0,
+          "present": 0,
+          "multiplier": 1
+        },
+        {
+          "id": "first",
+          "name": "First floor",
+          "metered": true,
+          "previous": 8821.0,
+          "present": 8954.7,
+          "multiplier": 1
+        }
+      ],
+      "commonMeters": [
+        {
+          "id": "motor",
+          "name": "Motor / water pump",
+          "previous": 566.0,
+          "present": 574.7,
+          "multiplier": 1
+        }
+      ],
+      "submeterPriorDate": "2025-12-03",
+      "submeterPreviousDate": "2026-02-04",
+      "submeterReadingDate": "2026-04-07",
+      "policy": {
+        "kind": "proRata"
+      },
+      "commonPolicy": {
+        "kind": "proRata"
+      }
+    },
+    {
+      "id": "sheet-apr-may-26",
+      "savedAt": "2026-06-11T21:57:38Z",
+      "label": "Apr-May-26 (from the spreadsheet)",
+      "bill": {
+        "providerId": "custom",
+        "planId": "total-only",
+        "billingMonth": "Apr-May-26",
+        "readingDate": "",
+        "officialMeter": {
+          "previous": 0,
+          "present": 338.0,
+          "multiplier": 1
+        },
+        "sanctionedLoadKw": 1,
+        "billingMonths": 2,
+        "rates": {
+          "billTotal": 3040.0
+        },
+        "printedPayable": 3040.0
+      },
+      "households": [
+        {
+          "id": "ground",
+          "name": "Ground floor",
+          "metered": false,
+          "previous": 0,
+          "present": 0,
+          "multiplier": 1
+        },
+        {
+          "id": "first",
+          "name": "First floor",
+          "metered": true,
+          "previous": 8954.7,
+          "present": 9170.0,
+          "multiplier": 1
+        }
+      ],
+      "commonMeters": [
+        {
+          "id": "motor",
+          "name": "Motor / water pump",
+          "previous": 574.7,
+          "present": 585.5,
+          "multiplier": 1
+        }
+      ],
+      "submeterPriorDate": "2026-02-04",
+      "submeterPreviousDate": "2026-04-07",
+      "submeterReadingDate": "2026-06-11",
+      "policy": {
+        "kind": "proRata"
+      },
+      "commonPolicy": {
+        "kind": "proRata"
+      }
+    }
+  ]
+}

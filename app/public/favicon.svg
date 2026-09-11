@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" role="img" aria-label="Fairmeter">
+  <!-- The submark. Browsers scale it; below 32px this is the only mark used.
+       The rule is the ink, so it flips to cream on a dark tab bar — otherwise
+       a third of the mark disappears into the browser chrome. -->
+  <style>
+    .rule { fill: #23281f; }
+    @media (prefers-color-scheme: dark) { .rule { fill: #f0ece1; } }
+  </style>
+  <rect x="4" y="6" width="12" height="16" fill="#a8551f"/>
+  <rect x="18" y="12" width="10" height="10" fill="#6b7a4a"/>
+  <rect class="rule" x="4" y="25" width="24" height="3"/>
+</svg>
