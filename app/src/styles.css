@@ -171,6 +171,13 @@
 
 * { box-sizing: border-box; }
 
+/* A phone has no horizontal scrollbar to warn you: one over-wide child and the
+   whole sheet slides sideways with no way to tell what did it. `clip` rather
+   than `hidden` because `hidden` would make <html> a scroll container and the
+   sticky top bar would stop sticking. Every real overflow below is still fixed
+   at its cause; this only keeps a missed one from moving the page. */
+html { overflow-x: clip; }
+
 body {
   margin: 0;
   background: var(--surface);
@@ -191,6 +198,9 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  /* Mobile browsers count the collapsing address bar in `vh`, so 100vh is taller
+     than the screen and the footer sits under it until you scroll. */
+  min-height: 100dvh;
 }
 
 .page {
@@ -383,7 +393,11 @@ h3 {
 
 .hero-inner {
   display: grid;
-  grid-template-columns: 1fr;
+  /* `1fr` is `minmax(auto, 1fr)`, and that `auto` floors the track at the
+     content's min-content width — one unbreakable child and the track, the
+     band and the whole page grow past the screen. Every track here is allowed
+     to be narrower than its content; the children below say what happens then. */
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-7);
   align-items: center;
 }
@@ -481,7 +495,7 @@ h3 {
 
 .specimen-rows li {
   display: grid;
-  grid-template-columns: 1fr auto auto;
+  grid-template-columns: minmax(0, 1fr) auto auto;
   gap: var(--space-3);
   align-items: baseline;
   padding: var(--space-2) 0 var(--space-2) var(--space-3);
@@ -518,7 +532,7 @@ h3 {
 
 .shell {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-5);
   align-items: start;
   padding-top: var(--space-6);
@@ -558,7 +572,7 @@ h3 {
 }
 
 .panel .shares {
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
   margin: var(--space-3) 0;
 }
 
@@ -634,7 +648,8 @@ h3 {
   align-items: center;
   justify-content: space-between;
   gap: var(--space-4);
-  padding: var(--space-2) var(--space-4);
+  /* The home-indicator strip is not a place to put a tappable button. */
+  padding: var(--space-2) var(--space-4) calc(var(--space-2) + env(safe-area-inset-bottom));
   background: var(--surface-raised);
   border-top: 1px solid var(--border-strong);
   box-shadow: var(--shadow-overlay);
@@ -950,6 +965,7 @@ select:disabled {
 .radios label {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: var(--space-2);
   min-height: 44px;
   font-size: var(--size-small);
@@ -1166,7 +1182,11 @@ button.link:hover:not(:disabled) {
 
 .radios select {
   width: auto;
-  min-width: 180px;
+  /* "Charge it all to [select]" is one label. Narrower than the select's
+     comfortable width it wraps to a second line instead of pushing the card
+     wider than the screen. */
+  min-width: min(180px, 100%);
+  max-width: 100%;
 }
 
 /* ===========================================================================
@@ -1324,6 +1344,11 @@ button.link:hover:not(:disabled) {
   overflow: hidden;
 }
 
+/* The segment may shrink to its share of the bar, so what is written inside it
+   has to give way too: without this the label's own min-content is handed back
+   up to whatever is sizing the bar. */
+.rail-seg > * { min-width: 0; }
+
 .rail-seg:nth-child(3n + 2) { background: var(--seg-2); }
 .rail-seg:nth-child(3n + 3) { background: var(--seg-3); }
 
@@ -1344,8 +1369,17 @@ button.link:hover:not(:disabled) {
 
 .table-scroll {
   overflow-x: auto;
+  /* A sideways flick inside the table stays inside it rather than triggering the
+     browser's back-swipe. */
+  overscroll-behavior-x: contain;
   margin: var(--space-2) calc(var(--space-1) * -1);
   padding: 0 var(--space-1);
+}
+
+/* Said only where the table actually has to be scrolled (breakpoints below). */
+.table-hint {
+  display: none;
+  margin: 0 0 var(--space-1);
 }
 
 table {
@@ -1464,35 +1498,227 @@ tfoot th:first-child {
 .history td .row-actions { margin-top: 0; }
 
 /* ===========================================================================
-   Breakpoints. Two: 600px and 1024px. Below 1024 the answer cannot sit beside
-   the form, so it follows it and the bottom bar carries it in the meantime.
+   Breakpoints. Three: 600px, 1024px, and "the pointer is a finger".
+
+   Below 1024 the answer cannot sit beside the form, so it follows it and the
+   bottom bar carries it in the meantime. Below 600 the sheet is one column
+   throughout and every control is thumb-sized. The pointer query is not a
+   width at all — it is the difference between a mouse and a fingertip, and a
+   tablet needs the second set of sizes at a desktop width.
    =========================================================================== */
 
+/* --- touch -----------------------------------------------------------------
+   iOS Safari zooms the page in when a form control smaller than 16px takes
+   focus, and does not zoom back out — the app is left scrolled sideways inside
+   a viewport it can no longer fit. The documented alternatives are worse:
+   `maximum-scale=1` on the viewport takes pinch-zoom away from everyone.
+
+   So this is the one place the type ramp (BRAND.md §4.2) is departed from, and
+   only on touch: 16px is a platform constant, not a size chosen for the design.
+   --------------------------------------------------------------------------- */
+
+@media (pointer: coarse) {
+  input[type="text"],
+  input[type="number"],
+  input[type="date"],
+  select,
+  .name,
+  .computed output {
+    font-size: 16px;
+  }
+
+  /* A finger has no hover, so the row's controls have to look tappable on
+     sight: the disclosure fold and the step chips get the same 44px minimum
+     the inputs already have. */
+  .step-chip { min-height: 44px; }
+  .theme-toggle .segment { min-height: 40px; }
+
+  /* The underlined text links are 16px of ink. The rule is left alone and the
+     hit area grown around it, so the line looks the same and can be hit. */
+  button.link { padding: 10px 0; }
+}
+
 @media (max-width: 1023px) {
-  /* Clear of the fixed bottom bar. */
-  .app { padding-bottom: 76px; }
+  /* Clear of the fixed bottom bar, plus whatever the device reserves below it. */
+  .app { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
+
+  /* The charge table is a matrix — a column per household — so on a narrow
+     screen it scrolls sideways rather than being restacked into something that
+     is no longer a comparison. The charge name rides along at the left edge so
+     a figure three columns in is still attached to its label. */
+  .breakdown th:first-child,
+  .breakdown td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background: var(--surface-raised);
+    /* The charge names are the one column allowed to wrap. Left on the sheet's
+       `nowrap`, "Fixed charges @ ₹70/kW/month" sets the column's width and the
+       figures — the reason for scrolling here at all — are pushed off-screen. */
+    white-space: normal;
+    max-width: min(45vw, 22ch);
+  }
+
+  .breakdown tbody tr:nth-child(even) td:first-child { background: var(--surface); }
+
+  /* The units sub-heading carries a whole sentence of provenance ("0 own + 161
+     unaccounted"); on the sheet's `nowrap` it sets a column three times as wide
+     as the figures under it. The amounts themselves still never wrap. */
+  .breakdown thead .subhead th { white-space: normal; }
+
+  .table-hint { display: block; }
 }
 
 /* On a phone the bar holds the name and the theme and nothing else — the steps
    would take the width the name needs, and the bottom bar is the way to the
-   answer anyway. */
+   answer anyway. With the steps gone the two survivors sit at the two ends,
+   rather than huddling on the left with the bar empty beside them. */
 @media (max-width: 700px) {
   .steps-nav { display: none; }
+  .topbar-inner { justify-content: space-between; }
 }
 
 @media (max-width: 600px) {
   .page { padding: 0 var(--space-4); }
+
+  /* 24px of card padding either side is 15% of a 320px screen. The card still
+     reads as a raised sheet at 16px, and the fields inside get the width. */
+  .card { padding: var(--space-4); }
+
   .hero { padding: var(--space-6) 0; }
   .hero h1 { font-size: 24px; }
   .result h2 { font-size: 19px; }
   .field.wide { grid-column: auto; }
+
+  /* One column of full-width targets, in the order they are meant to be read,
+     instead of three ragged rows of part-width ones. */
+  .hero-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-2);
+  }
+
   .hero-actions button:not(.link),
-  .hero-actions a.button { flex: 1 1 auto; }
+  .hero-actions a.button {
+    width: 100%;
+    flex: none;
+  }
+
+  .hero-actions button.link {
+    align-self: flex-start;
+    margin-top: var(--space-1);
+  }
+
   .panel-actions-split { flex-direction: column; }
+
+  /* There is no room to write a household's name and its amount inside a
+     segment 130px wide; the bar becomes the bare proportion it is in the answer
+     panel, and the rows directly beneath it carry the labels — same order, same
+     hues. `.rail` is decorative and aria-hidden, so nothing is lost to a reader. */
+  .hero .rail { height: 10px; }
+  .hero .rail-seg > * { display: none; }
+
+  /* Name and amount on one line, the units under them — rather than three
+     columns fighting over 270px, with the amount the first to be squeezed. */
+  .specimen-rows li { grid-template-columns: minmax(0, 1fr) auto; }
+  .specimen-name { grid-area: 1 / 1; }
+  .specimen-amount { grid-area: 1 / 2; }
+  .specimen-units { grid-area: 2 / 1 / auto / span 2; }
+
+  /* A card's title and its controls stop competing for one line. */
+  .card-head { flex-wrap: wrap; }
+  .card-head .card-actions { width: 100%; }
+
+  /* The fold's state is worth more than the ellipsis it was being cut down to,
+     so it drops to its own line, indented to the sign that opens the fold. */
+  .disclosure > summary { flex-wrap: wrap; }
+
+  .disclosure-detail {
+    width: 100%;
+    margin-left: 0;
+    padding-left: calc(1ch + var(--space-3));
+    white-space: normal;
+  }
+
+  /* History is one row per cycle and five columns wide; at this width it reads
+     as a stack of cards instead, each figure kept beside the label it needs.
+     The labels come from `data-label` on the cell, so the table stays a table
+     for a screen reader and for print. */
+  .history thead { display: none; }
+
+  .history,
+  .history tbody,
+  .history tr,
+  .history td {
+    display: block;
+    width: 100%;
+  }
+
+  .history tbody tr {
+    padding: var(--space-3) 0;
+    border-bottom: 1px solid var(--border-strong);
+  }
+
+  .history tbody tr:nth-child(even) { background: none; }
+
+  .history td {
+    padding: var(--space-1) 0;
+    border: none;
+    white-space: normal;
+    text-align: left;
+  }
+
+  .history td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    font-family: var(--face-body);
+    font-size: var(--size-micro);
+    letter-spacing: 0.02em;
+    color: var(--text-muted);
+  }
+
+  .history td.num { text-align: left; }
+
+  /* The actions cell is the exception to the block rule above — its buttons
+     still share a row and wrap between themselves. */
+  .history td.row-actions {
+    display: flex;
+    margin-top: var(--space-2);
+  }
+
+  .history td .row-actions button { flex: 1 1 auto; }
+
+  /* The table no longer scrolls, so nothing needs to say it does. */
+  .history-scroll .table-hint { display: none; }
+}
+
+/* 320px — an iPhone SE, and the narrowest screen still in real use. Measured:
+   the top bar's two fixed-width halves want 315px of the 288px inside the
+   margins, so the bar overflows and drags the page with it. The toggle gives up
+   its generous padding here; it is still three 40px-tall targets on one rule. */
+@media (max-width: 380px) {
+  .topbar-inner { gap: var(--space-2); }
+
+  .theme-toggle .segment {
+    padding-left: var(--space-2);
+    padding-right: var(--space-2);
+    font-size: var(--size-micro);
+  }
+
+  /* Below this the bottom bar's two halves stop fitting side by side at their
+     full padding; the bar gives up its margins before it gives up the button. */
+  .mobilebar {
+    gap: var(--space-2);
+    padding-left: var(--space-3);
+    padding-right: var(--space-3);
+  }
+
+  .mobilebar .button { padding: 12px var(--space-3); }
+  .mobilebar-value { font-size: var(--size-section); }
 }
 
 @media (min-width: 900px) {
-  .hero-inner { grid-template-columns: 1.05fr 0.95fr; }
+  .hero-inner { grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr); }
 }
 
 @media (min-width: 1024px) {
@@ -1616,6 +1842,15 @@ tfoot th:first-child {
   }
 
   .table-scroll { overflow: visible; }
+
+  /* Paper is not scrolled, and nothing on it is pinned to an edge. */
+  .table-hint { display: none !important; }
+
+  .breakdown th:first-child,
+  .breakdown td:first-child {
+    position: static;
+    background: none;
+  }
 
   th,
   td { white-space: normal; }

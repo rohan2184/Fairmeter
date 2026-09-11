@@ -48,6 +48,9 @@ export function Breakdown({ result }: { result: SplitResult }) {
         summary="Charge by charge"
         detail={`${result.components.length} lines · ₹${formatRupees(result.payable)}`}
       >
+        <p className="hint table-hint print-hide">
+          A column per household — scroll sideways for the rest. The charge names stay put.
+        </p>
         <div className="table-scroll">
           <table className="breakdown">
             <thead>
