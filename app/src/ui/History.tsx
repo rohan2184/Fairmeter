@@ -67,7 +67,7 @@ export function History({ store, cycles, onLoad, onContinue, onChanged, totalsFo
           readings already in place.
         </p>
       ) : (
-        <div className="table-scroll">
+        <div className="table-scroll history-scroll">
           <table className="history">
             <thead>
               <tr>
@@ -87,9 +87,13 @@ export function History({ store, cycles, onLoad, onContinue, onChanged, totalsFo
                       <strong>{c.label || c.bill.billingMonth || 'Untitled'}</strong>
                       <span className="hint"> saved {c.savedAt.slice(0, 10)}</span>
                     </td>
-                    <td className="num">{t ? t.units.toFixed(0) : '—'}</td>
-                    <td className="num">{t ? `₹${formatRupees(t.payable)}` : '—'}</td>
-                    <td>{c.households.map((h) => h.name).join(', ')}</td>
+                    <td className="num" data-label="Units">
+                      {t ? t.units.toFixed(0) : '—'}
+                    </td>
+                    <td className="num" data-label="Total">
+                      {t ? `₹${formatRupees(t.payable)}` : '—'}
+                    </td>
+                    <td data-label="Households">{c.households.map((h) => h.name).join(', ')}</td>
                     <td className="row-actions">
                       <button className="ghost" onClick={() => onLoad(c)}>
                         Open
