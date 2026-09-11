@@ -29,6 +29,7 @@ absent owner. The unit of the model is a household, which is either metered or u
 | `app/src/engine/providers/` | Provider catalogue + profile→bill builder (D-10) |
 | `app/src/storage/` | `CycleStore` interface + localStorage implementation |
 | `app/src/ui/`, `app/src/export/` | React components; WhatsApp text + print output |
+| `infra/` | AWS CDK stack: private S3 + CloudFront static hosting (D-15). `npm run deploy` |
 
 ## Commands
 

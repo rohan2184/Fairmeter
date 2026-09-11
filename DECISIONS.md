@@ -320,6 +320,42 @@ still appears, in the breakdown.
 
 ---
 
+### D-15 — Hosting: private S3 behind CloudFront, defined in CDK
+**Status:** ✅ Decided (2026-09-11)
+
+D-03 makes the app pure client-side — engine in the browser, history in `localStorage`, no
+API and no database. That makes hosting a solved problem rather than an architecture
+question, and the cheapest correct answer is a static origin behind a CDN.
+
+**Decision:** an `infra/` CDK app (TypeScript) defining a **private S3 bucket** — all public
+access blocked, read granted only to the `cloudfront.amazonaws.com` principal via **Origin
+Access Control**, scoped by the distribution's ARN — fronted by a **CloudFront
+distribution**. No compute, no VPC, no database anywhere in the stack.
+
+**Why CDK over Terraform or a bare `aws s3 sync` script:** same language and toolchain as
+`app/`, so the infra is type-checked by the same `tsc`; and the response-headers, cache and
+error-mapping policies still to come are typed constructs rather than hand-assembled JSON.
+The IaC tool adds no AWS cost — the site fits inside the CloudFront perpetual free tier, so
+the real cost levers are the price class and the cache policy.
+
+**`PRICE_CLASS_200`, not 100.** The cheaper class serves only North America and Europe. The
+users are in Ahmedabad; 200 is the first class that includes the Indian edges.
+
+**Cache headers are split in two.** Vite content-hashes everything under `assets/`, so those
+go up `immutable, max-age=31536000`; the unhashed root shell goes up `no-cache`. Publishing
+the shell with a long TTL would strand viewers on an `index.html` pointing at bundles the
+next deploy deleted.
+
+**Deploys are manual** (`npm run deploy` in `infra/`, which builds and tests first and
+refuses to publish a missing build). GitHub Actions via OIDC is the intended next step if the
+project grows; CodePipeline is the in-AWS alternative. Recorded in `infra/README.md`.
+
+**Domain:** the CloudFront `*.cloudfront.net` address for now. A custom domain is an ACM
+certificate in us-east-1 plus `domainNames` on the existing distribution — an in-place
+update, so choosing to wait costs nothing later.
+
+---
+
 ## ⏳ Pending
 
 ### ~~P-01 — Residual attribution~~ → resolved by D-08

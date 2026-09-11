@@ -1,0 +1,25 @@
+{
+  "name": "fairmeter-infra",
+  "private": true,
+  "version": "0.0.0",
+  "description": "AWS infrastructure for the Fairmeter static site (S3 + CloudFront).",
+  "scripts": {
+    "build:app": "npm --prefix ../app ci && npm --prefix ../app test && npm --prefix ../app run build",
+    "synth": "cdk synth",
+    "diff": "cdk diff",
+    "deploy": "npm run build:app && cdk deploy",
+    "deploy:only": "cdk deploy",
+    "bootstrap": "cdk bootstrap",
+    "destroy": "cdk destroy"
+  },
+  "dependencies": {
+    "aws-cdk-lib": "^2.230.0",
+    "constructs": "^10.4.2"
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.3",
+    "aws-cdk": "^2.1041.0",
+    "ts-node": "^10.9.2",
+    "typescript": "~5.9.3"
+  }
+}
