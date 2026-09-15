@@ -64,16 +64,16 @@ wrong cheaply.
 > written for. Held by `extract/schema.test.tsx`, which renders `BillForm` for every plan
 > in the registry and compares the keys it writes to against the generated schema's.
 
-### Phase E1 — The Lambda, on this machine ⬜
+### Phase E1 — The Lambda, on this machine 🔨
 
 Write and prove the handler before any of it is deployed. It is a function from bytes to a
 candidate; it can be called from a test.
 
 | # | Sub-phase | Checkpoint | Status |
 |---|-----------|------------|--------|
-| E1.1 | Handler skeleton in `lambda/extract/` — request parse, **size cap**, **magic-byte** content sniff for PDF/JPEG/PNG (never the extension, never the caller's `Content-Type`) (D-20). | Unit tests: an oversized body, a `.pdf` that is actually a ZIP, and an empty body each get a distinct 4xx and never reach the model. | ⬜ |
-| E1.2 | The single Messages call — `AnthropicBedrockMantle`, `anthropic.claude-opus-5`, `us-east-1`, `output_config.format` set to the E0.1 schema, hard output-token ceiling (D-17, D-20, D-21). One request. No tool loop. | Invoked against `100113210.pdf` with real credentials, it returns a schema-valid candidate. | ⬜ |
-| E1.3 | Prompt and failure taxonomy — unreadable page, wrong provider for the selected plan, a field the model could not find. A missing field comes back empty for the owner to type, never guessed. | A cropped bill returns partial fields plus a named reason, and the UI contract in E0.2 can render it. | ⬜ |
+| E1.1 | Handler skeleton in `lambda/extract/` — request parse, **size cap**, **magic-byte** content sniff for PDF/JPEG/PNG (never the extension, never the caller's `Content-Type`) (D-20). | Unit tests: an oversized body, a `.pdf` that is actually a ZIP, and an empty body each get a distinct 4xx and never reach the model. | ✅ |
+| E1.2 | The single Messages call — `AnthropicBedrockMantle`, `anthropic.claude-opus-5`, `us-east-1`, `output_config.format` set to the E0.1 schema, output-token ceiling **4096** (D-22). One request. No tool loop. | Invoked against `100113210.pdf` with real credentials, it returns a schema-valid candidate. | ⬜ |
+| E1.3 | Prompt and failure taxonomy — unreadable page, wrong provider for the selected plan, a field the model could not find. A missing field comes back empty for the owner to type, never guessed. | A cropped bill returns partial fields plus a named reason, and the UI contract in E0.2 can render it. | ✅ |
 | E1.4 | Logging discipline (D-19) — size and content type only. No image bytes, no extracted personal fields, nothing written to S3. | Read the CloudWatch output of an E1.2 run: no consumer number, no name, no address anywhere in it. | ⬜ |
 
 > **Milestone M2 — the reference bill reads itself.** `100113210.pdf` in, candidate
@@ -99,7 +99,7 @@ The owner-facing half. D-18's rule governs it: the model proposes, the person co
 
 | # | Sub-phase | Checkpoint | Status |
 |---|-----------|------------|--------|
-| E3.1 | Upload control — file picker and camera capture, client-side type and size guard, explicit pending / failed / succeeded states. No spinner without a way out. | Rendered test: a rejected file never reaches the network; a failed call leaves the form exactly as it was, still typeable. | ⬜ |
+| E3.1 | Upload control — file picker and camera capture, client-side type and size guard, explicit pending / failed / succeeded states. No spinner without a way out. **Amended in S2: it must accept BOTH SIDES of the bill** — the rates are on the back (see "Open from S2" below). | Rendered test: a rejected file never reaches the network; a failed call leaves the form exactly as it was, still typeable. | ⬜ |
 | E3.2 | Read-from-the-bill marking — extracted values land in the normal fields, visibly flagged as read rather than typed, and stay editable. Editing one clears its flag (D-18). | Rendered test: every extracted field is editable, and the flag survives a re-render but not an edit. | ⬜ |
 | E3.3 | The cross-check, surfaced — computed payable against `printedPayable`, with the disagreement stated in rupees, not hidden behind a warning icon. | A fixture with one rate deliberately corrupted shows a mismatch prominently and still lets the owner fix the field by hand. | ⬜ |
 | E3.4 | Confirm-to-save gate — nothing enters the `CycleStore` until a person has confirmed (D-18). | Rendered test: extraction alone writes nothing to storage; confirming writes exactly one cycle. | ⬜ |
@@ -141,33 +141,60 @@ money**, on an inference call and on a deploy. The sessions below are cut at tho
 
 | # | Covers | Ends at | What is needed from the owner to close it |
 |---|--------|---------|-------------------------------------------|
-| **S1** | E0.1–E0.4 | M1 | ✅ **Closed 2026-09-15.** Answered: the seven cycles have **figures only** — no original bills survive, so `DOCUMENT_FIXTURES` holds the reference bill alone. Left for the owner to review: the generated schema for the Torrent plan, and the two choices in "Open from S1" below. |
-| **S2** | E1.1, E1.3 — the offline halves of the handler | — | Credentials in the shell (`aws sts get-caller-identity` returns the right account), `anthropic.claude-opus-5` enabled in Bedrock `us-east-1`, and explicit go-ahead to make paid calls. |
-| **S3** | E1.2, E1.4 | **M2** | Read the first candidate next to the actual bill and confirm the fields. Approve the two numbers chosen for D-20: request size cap and output-token ceiling. |
-| **S4** | E2.1–E2.4 | **M3** | The deploy itself — `cdk diff` to read, then `npm run deploy`. Budget amount and the alarm's email address. **How many bills you would realistically do in one sitting — that number is the WAF rate limit** (D-20 says tune against the owner, not the abuser). And a call on cost: a WAF web ACL is a standing ~$5–8/month, more than the inference it protects. |
+| **S1** | E0.1–E0.4 | M1 | ✅ **Closed 2026-09-15.** Answered: the seven cycles have **figures only** — no original bills survive, so `DOCUMENT_FIXTURES` holds the reference bill alone. Left for the owner to review: the generated schema for the Torrent plan. The two choices it left open were confirmed in S2 and are now D-22. |
+| **S2** | E1.1, E1.3 — the offline halves of the handler | — | ✅ **Closed 2026-09-15.** Answered: both "Open from S1" choices stand, and the request size cap is 8 MB — all three recorded as **D-22**. The owner also supplied the fact that reshaped E1.3: **the bill is printed on both sides, and the back page carries the rates.** Left for the owner: the schema amendment below, and the two S3 prerequisites (credentials in the shell, `anthropic.claude-opus-5` enabled in Bedrock `us-east-1`, explicit go-ahead to make paid calls). |
+| **S3** | E1.2, E1.4 | **M2** | `AWS_PROFILE=fairmeter-admin` (D-23 — `fairmeter-deploy` cannot invoke the model). Read the first candidate next to the actual bill and confirm the fields. Both of D-20's numbers are already settled in D-22 — 8 MB request cap, 4096 output-token ceiling — so nothing is owed up front. |
+| **S4** | E2.1–E2.4 | **M3** | `AWS_PROFILE=fairmeter-deploy` (D-23). The deploy itself — `cdk diff` to read, then `npm run deploy`. Budget amount and the alarm's email address. **How many bills you would realistically do in one sitting — that number is the WAF rate limit** (D-20 says tune against the owner, not the abuser). And a call on cost: a WAF web ACL is a standing ~$5–8/month, more than the inference it protects. |
 | **S5** | E3.1–E3.4 | **M4** | Use it. Copy and layout review of the upload and review states, and a judgement on whether the mismatch message reads right to someone being told they owe more. |
 | **S6** | E4.1–E4.3 | **M5** | Try it on a phone. Camera capture and IndexedDB behave differently there than in desktop Chrome, and the stairwell is the real use case. |
 | **S7** | E5.1–E5.3 | **M6** | Read the eval score and the per-bill cost, decide the cheaper-model question (D-21), approve the release. |
 
 **S1 is the only session that needs nothing from the owner from start to finish.**
 
-#### Open from S1 — two choices made in code, for the owner to confirm or overturn
+#### Closed in S2 — the two choices from S1
 
-Neither blocks S2. Both are cheap to reverse now and expensive to reverse after E3 is built
-on top of them, which is why they are written down rather than left in the diff.
+Both confirmed by the owner as built, together with the 8 MB size cap, and written up as
+**D-22**. The unread rate stays **empty** rather than pre-filled with the plan's default, and
+per-field confidence stays **derived** rather than model-reported. Nothing here is open.
 
-1. **Per-field confidence is derived, not claimed.** E0.2 asked for per-field confidence.
-   What `extract/types.ts` carries is a `FieldStatus` of `read` / `missing` / `rejected`,
-   computed from what came back, rather than a number the model scores itself with. A
-   model's own confidence is not evidence, and D-18 already supplies real evidence: the
-   engine recomputes and the printed total either agrees or does not. If the owner wants a
-   model-reported score as well, it is a property on the schema and a field on the status.
-2. **An unread rate is left empty, not filled with the plan's published default.** Follows
-   E1.3's "never guessed", and makes the gap visible. The cost: an empty rate is a zero to
-   `buildBill`, which drops that charge entirely, so a bill with one unread rate computes
-   *low* and the mismatch is what says so. The alternative — pre-fill the default and flag
-   it — computes closer to right and hides the gap better. This is a judgement about which
-   failure the owner would rather have, so it is theirs to make.
+#### Open from S2 — one amendment to the generated schema
+
+E1.3 owes a named `wrong-provider` reason, and the candidate alone cannot supply one: an
+Adani bill filled in under a Torrent plan is a valid bill that recomputes to its own printed
+total, so D-18's cross-check does not fire. The only signal is the utility's name, which is
+printed on every bill.
+
+So `billFieldsSchema` now emits one extra property — `document.utility`, the utility's name
+**as printed**, transcribed like any other field. The handler compares it to the selected
+provider and warns; the comparison is deliberately generous, because telling someone their
+correct bill is the wrong bill is worse than missing a wrong one that still faces the
+cross-check. It is **not** a `BillFields` key and never reaches the form.
+
+This touches E0.1's output, which is why it is written down rather than left in the diff.
+E0.1's checkpoint is unaffected and still passes: it constrains the *rate* properties, and
+`schema.test.tsx` now additionally asserts the meta object is exactly `{ utility }` and sits
+outside the scalar half. If the owner would rather not spend a field on it, removing it costs
+the `wrong-provider` code and nothing else.
+
+#### Open from S2 — the back page, and what it means for E3
+
+The owner supplied this in S2 and it is load-bearing: **the reference bill is printed on two
+sides**, and page 2 is where the tariff table and the itemised charges live — which is to say
+where nearly every *rate* the schema asks for is printed. Page 1 has the readings, the load,
+the dates and the payable.
+
+Two consequences, both built:
+
+- The prompt and the schema descriptions now say so explicitly, and tell the model to take
+  the tariff table row matching the chosen plan and load band rather than the first row — a
+  residential rate on a commercial bill being the misread with no symptom.
+- A photograph of the front alone produces a recognisable shape: readings read, zero rates
+  read. That is now its own named reason, `back-page-missing`, whose message says to turn the
+  bill over rather than listing twelve empty fields.
+
+**For E3 (session S5):** the upload control has to accept, and ask for, **both sides**. A
+single-file picker is not enough for the photograph case, and the owner reviewing the copy in
+S5 should see the two-page ask in it.
 
 ### Session protocol
 
@@ -226,4 +253,6 @@ checked against what comes next.
 | D-19 — read server-side, kept on the device | E1.4, E4.1–E4.3 |
 | D-20 — spend ceiling before traffic | E1.1, E2.2, E2.3 |
 | D-21 — one call, generated schema | E0.1, E1.2, E5.1 |
+| D-22 — empty over guessed, derived over claimed, 8 MB cap | E1.1, E1.3, E3.2 |
+| D-23 — which IAM profile each session loads | S3, S4 |
 | P-06 — access approval | Resolved 2026-09-15 |

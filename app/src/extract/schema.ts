@@ -138,6 +138,31 @@ export function rateFields(plan: TariffPlan): RateField[] {
   );
 }
 
+/**
+ * What the PAGE says about itself — transcribed, never judged.
+ *
+ * The candidate alone cannot tell an Adani bill filled in under a Torrent plan
+ * from a correct read: both are valid bills and both recompute to their own
+ * printed total, so D-18's cross-check does not fire. The only signal is the
+ * utility's name, which is printed in large type on every bill in
+ * `PROVIDERS.md`. So the model transcribes it and the handler compares — which
+ * is a fact off the page, not the model's opinion of its own work (D-22).
+ *
+ * It is not a `BillFields` key and never reaches the form: it exists so
+ * `wrong-provider` can be a named reason instead of a guess (E1.3).
+ */
+export const DOCUMENT_KEY = 'document';
+
+export const DOCUMENT_FIELDS: ScalarField[] = [
+  {
+    // `key` is typed to `BillFields` for the scalar half; this object is not
+    // part of it, so the cast is the honest way to reuse the same shape.
+    key: 'utility' as keyof BillFields,
+    description:
+      'The name of the electricity utility exactly as printed on the bill, e.g. "Torrent Power Limited". Empty if no utility name is legible.',
+  },
+];
+
 const str = (description: string): JsonSchema => ({ type: 'string', description });
 
 const objectOf = (props: Record<string, JsonSchema>, description: string): JsonSchema => ({
@@ -164,13 +189,25 @@ export function billFieldsSchema(provider: ProviderProfile, plan: TariffPlan): J
   return objectOf(
     {
       ...scalars,
+      [DOCUMENT_KEY]: objectOf(
+        Object.fromEntries(DOCUMENT_FIELDS.map((f) => [f.key, str(f.description)])),
+        'What the page says it is. Transcribed from the bill, not inferred.',
+      ),
       rates: objectOf(
         rates,
         `The rates printed on this bill, for ${provider.shortName}'s "${plan.label}" tariff. ` +
+          'These are USUALLY ON THE BACK of the bill, in a tariff table listing every tariff ' +
+          'the utility offers — take the row for this tariff and this connection, not the first ' +
+          'row, and not a residential row on a commercial bill. Where a percentage is printed ' +
+          'both in the itemised charges and in the table, use the one in the itemised charges: ' +
+          'that is the one this bill was actually charged at. ' +
           'Read each one off the page; leave it empty rather than supplying the published rate from memory.',
       ),
     },
     `The fields of one ${provider.name} electricity bill, transcribed exactly as printed. ` +
+      'A bill is PRINTED ON BOTH SIDES: the meter readings and the amount payable are on the ' +
+      'front, and the itemised charges and the tariff table are on the back. Read every page ' +
+      'you are given before answering. ' +
       'Every value is a string. Do not calculate anything, do not convert units, and leave ' +
       'anything you cannot find on the page as an empty string.',
   );

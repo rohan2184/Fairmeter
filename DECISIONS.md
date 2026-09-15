@@ -593,6 +593,99 @@ an argument. Extraction should not ship without it.
 
 ---
 
+### D-22 — A gap in the read is left visible, and the only confidence that counts is the engine's
+**Status:** ✅ Decided (2026-09-15)
+
+Two questions that E0.2 and E1.3 could each have answered either way. Both were built one
+way in session S1, flagged rather than buried, and confirmed by the owner in S2.
+
+**Decision — a field the model did not read is left EMPTY, never pre-filled with the plan's
+published rate.** The registry knows what Torrent's fixed charge is supposed to be, and
+filling it in would make the computed total land close to the printed one. That is exactly
+the objection: a default looks like something the owner typed, it is usually right, and the
+one time the utility revised its tariff it is wrong in the direction nobody checks.
+
+**Consequence, accepted with the decision:** an empty rate is a zero to `buildBill`, which
+drops that charge entirely, so a bill with one unread rate computes **low**. The
+printed-payable cross-check of D-18 is what reports it, and it reports it loudly — a missing
+line item is a large disagreement, not a small one. This is the failure the owner chose:
+obviously broken over quietly plausible.
+
+**Decision — per-field confidence is DERIVED from the response, not reported by the model.**
+`FieldStatus` is `read` / `missing` / `rejected`, computed from what arrived and what
+survived normalisation. No `confidence` property goes on the generated schema.
+
+**Rationale:** a model's own score is not evidence about a bill, and D-18 already supplies
+evidence that is — the engine recomputes and the printed total either agrees or does not.
+What the UI needs from a field is whether a person still has to type it, which is what the
+three states say. A number the model grades itself with would compete with the cross-check
+for the owner's attention while carrying none of its authority.
+
+**Decision — the request size cap of D-20 is 8 MB** of raw document, before base64. The
+reference PDF is 216 KB and a phone photo of a bill is 2–6 MB, so the cap clears the real
+case without the owner ever resizing anything, and still bounds one request. It lives in
+`LIMITS.maxBytes` in `extract/types.ts`, shared by both ends — the browser rejects what the
+Lambda would, and the Lambda enforces it regardless, because a client-side check is a
+courtesy and not a control.
+
+**Decision — the hard output-token ceiling of D-20 is 4096.** Settled by the owner in S2
+rather than S3, once the size cap made the pair worth deciding together.
+
+A complete Torrent candidate is around forty short strings — roughly 600–1,000 output tokens.
+4096 is generous against that on purpose. The ceiling's job is to bound a runaway or
+adversarial response, not to trim a legitimate one, and the two failures are not symmetrical:
+a truncated read of a real bill arrives as a `malformed-response` that the owner cannot act on
+and cannot distinguish from a bad model, while a few hundred wasted tokens on a pathological
+response cost fractions of a paisa. A slab-heavy tariff with many more rates than Torrent's
+still fits well inside it, which matters because D-10 means the next provider is data rather
+than code and nobody will revisit this number when one is added.
+
+It belongs to the model call, so the constant lives with E1.2's request in `lambda/extract/`,
+not in the `LIMITS` of `extract/types.ts` — that object is the contract the *browser* shares,
+and how many tokens the model may emit is no concern of the browser's.
+
+---
+
+### D-23 — Two IAM users, and the session decides which one is loaded
+**Status:** ✅ Decided (2026-09-15)
+
+Account **565398310596**, everything in `us-east-1`. Two named users exist, and they are not
+interchangeable — which one is loaded is a property of the *work*, not a preference.
+
+| Profile | Carries | Used by |
+|---------|---------|---------|
+| `fairmeter-admin` | `AdministratorAccess`, `IAMUserChangePassword`, `AmazonBedrockFullAccess`, `AmazonBedrockMantleFullAccess`, `CloudWatchLogsReadOnlyAccess` | **S3** (E1.2, E1.4) — the local inference call and reading its logs |
+| `fairmeter-deploy` | customer-managed `fairmeter-deploy` + `CloudWatchLogsReadOnlyAccess` | **S4** (E2.1–E2.4) — `cdk diff` and `cdk deploy` |
+
+**`fairmeter-deploy` is deliberately tiny.** Its policy grants exactly two things:
+`sts:AssumeRole` on the three CDK bootstrap roles
+(`cdk-hnb659fds-{deploy,file-publishing,lookup}-role-565398310596-us-east-1`) and
+`ssm:GetParameter` on `/cdk-bootstrap/hnb659fds/version`. Confirmed by
+`simulate-principal-policy`: `bedrock:InvokeModel` is an **implicitDeny**, and so is
+`cloudformation:CreateChangeSet` — the latter is **correct and must not be "fixed"**, because
+CDK reaches CloudFormation by assuming the bootstrap deploy role, not as the user. The user
+cannot even read its own policy list; that has to be done through the admin profile.
+
+**Consequence:** E1.2 cannot run under `fairmeter-deploy`. There is no configuration that
+makes it work, and the failure would look like a Bedrock error rather than a credential one.
+
+**Noted, not changed:** the three Bedrock and Logs policies on `fairmeter-admin` grant nothing
+`AdministratorAccess` did not already grant. They are redundant today and harmless; they are
+worth keeping as a statement of what that user is *for*, and they become load-bearing the
+moment `AdministratorAccess` is removed.
+
+**Left open, and it is the owner's call:** E1.2 is the first paid call, and running it under
+`AdministratorAccess` from a laptop is broader than the work needs. D-17's own logic — the
+deployed Lambda's execution role carries `bedrock:InvokeModel` and nothing else — argues for a
+third user, `fairmeter-invoke`, scoped to `bedrock:InvokeModel` on the single model ARN, so a
+leaked experiment key is an inference bill rather than the account. Not built; `fairmeter-admin`
+is what S3 uses until it is.
+
+**`anthropic.claude-opus-5` is listed by `bedrock list-foundation-models` in `us-east-1` for
+this account**, which is P-06's access confirmed in practice rather than on paper.
+
+---
+
 ## ⏳ Pending
 
 ### P-06 — Claude access approval, and what happens without it

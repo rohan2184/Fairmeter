@@ -2,11 +2,12 @@ import { isValidDate } from '../engine/align';
 import { PROVIDERS } from '../engine/providers/registry';
 import type { ProviderProfile, TariffPlan } from '../engine/providers/types';
 import { blankBill, type BillFields } from '../ui/formState';
-import { SCALAR_FIELDS, schemaRateKeys } from './schema';
+import { DOCUMENT_KEY, SCALAR_FIELDS, schemaRateKeys } from './schema';
 import {
   fail,
   ok,
   type CandidateStatus,
+  type DocumentMeta,
   type ExtractIssue,
   type ExtractResult,
   type FieldStatus,
@@ -149,6 +150,13 @@ export function parseCandidate(raw: unknown, providerId: string, planId: string)
         });
     }
 
+    // What the page said it was. Transcribed, so it can be wrong; it is
+    // compared, never trusted (E1.3).
+    const meta = isRecord(raw[DOCUMENT_KEY]) ? raw[DOCUMENT_KEY] : {};
+    const document: DocumentMeta = {
+      utility: typeof meta.utility === 'string' ? meta.utility.trim() : '',
+    };
+
     const rates = isRecord(raw.rates) ? raw.rates : {};
     if (!isRecord(raw.rates))
       warnings.push({
@@ -198,7 +206,7 @@ export function parseCandidate(raw: unknown, providerId: string, planId: string)
     for (const field of missing)
       warnings.push({ code: 'missing-field', message: 'Not found on the bill — type it in.', field });
 
-    return ok({ fields, status, warnings });
+    return ok({ fields, status, document, warnings });
   } catch (e) {
     // The contract is that this function returns. Nothing above should reach
     // here; if it does, the owner still gets a form they can type into.

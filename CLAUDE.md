@@ -31,6 +31,7 @@ absent owner. The unit of the model is a household, which is either metered or u
 | `app/src/storage/` | `CycleStore` interface + localStorage implementation |
 | `app/src/ui/`, `app/src/export/` | React components; WhatsApp text + print output |
 | `app/public/404.html`, `50x.html` | Standalone branded status pages — no bundle, no webfont (D-16) |
+| `lambda/extract/` | Bill-extraction handler (D-17): request gate, magic-byte sniff, prompt, failure taxonomy. Tested by `app`'s vitest run; the model call is injected, so the tests cost nothing |
 | `infra/` | AWS CDK stack: private S3 + CloudFront static hosting (D-15). `npm run deploy` |
 | `discard/` | Retired material kept out of the way — see `discard/README.md` (D-16) |
 
@@ -109,6 +110,14 @@ statement (`@media print` in `styles.css`), and a history view over saved cycles
   the user rather than assuming — then record the answer there.
 
 ## Reading the reference PDF
+
+**It has two pages, and they carry different halves of the answer.** Page 1 is the meter
+readings, sanctioned load, reading date, billing month and amount payable. Page 2 — "BILL
+DETAILS" — is the itemised charge stack *and* the TARIFF STRUCTURE table, which is where
+almost every per-unit rate and fixed charge is actually printed, in rows covering every
+tariff Torrent sells. Anything reading a bill has to read both sides, and has to pick the
+table row matching the tariff and the load band; a residential rate on a commercial bill is
+the misread with no symptom.
 
 `pdftoppm` is not installed, so `Read` cannot render the PDF. Extract text with:
 

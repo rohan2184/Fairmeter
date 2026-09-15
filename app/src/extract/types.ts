@@ -35,6 +35,12 @@ export type DocumentKind = 'pdf' | 'jpeg' | 'png';
 export type ExtractErrorCode =
   /** Nothing was uploaded, or the body was empty. */
   | 'empty'
+  /**
+   * The request itself was wrong — not JSON, no plan, bytes that are not
+   * base64. Added in E1.1: E0.2's taxonomy described the document and the
+   * model, and had no word for the caller getting the envelope wrong.
+   */
+  | 'bad-request'
   /** Over the request size cap (D-20). */
   | 'too-large'
   /** Magic bytes say this is not a PDF, JPEG or PNG. */
@@ -47,6 +53,14 @@ export type ExtractErrorCode =
   | 'wrong-provider'
   /** A field the model could not find. Carried as a warning, never a guess. */
   | 'missing-field'
+  /**
+   * The front of the bill read, and nothing on the back did. A bill is printed
+   * on both sides and nearly every RATE is on the reverse (the tariff table and
+   * the itemised charges), so a photograph of the front alone produces exactly
+   * this shape. Added in E1.3, because "twelve missing fields" is a worse thing
+   * to tell someone than "turn the bill over".
+   */
+  | 'back-page-missing'
   /** The model answered, but not in the shape the schema demanded. */
   | 'malformed-response'
   /** Rate limited upstream, or by the WAF rule of D-20. */
@@ -85,6 +99,12 @@ export interface CandidateStatus {
   rates: Record<string, FieldStatus>;
 }
 
+/** What the page said it was, transcribed. Not a form field; see `schema.ts`. */
+export interface DocumentMeta {
+  /** The utility's name as printed, or empty if none was legible. */
+  utility: string;
+}
+
 export interface ExtractCandidate {
   /**
    * A COMPLETE `BillFields` — every key present, anything unread left empty.
@@ -93,6 +113,8 @@ export interface ExtractCandidate {
    */
   fields: BillFields;
   status: CandidateStatus;
+  /** Used to check the bill is the utility the owner selected (E1.3). */
+  document: DocumentMeta;
   /** Partial reads and anything else the owner should know. Never fatal. */
   warnings: ExtractIssue[];
 }
@@ -114,7 +136,10 @@ export const fail = (
  * (E3.1) instead of spending an upload to find out. The Lambda enforces them
  * regardless — a client-side check is a courtesy, not a control (D-20).
  *
- * The numbers themselves are the owner's to approve in session S3.
+ * `maxBytes` was confirmed by the owner in session S2 and is recorded as D-22:
+ * 8 MB clears any phone photo of a bill without the owner resizing anything,
+ * and still bounds one request. The output-token ceiling belongs to the model
+ * call and is settled in S3 with E1.2.
  */
 export const LIMITS = {
   /** Bytes of raw document, before base64. A phone photo of a bill is ~2–5 MB. */

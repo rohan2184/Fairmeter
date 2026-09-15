@@ -14,6 +14,13 @@
     "lib": ["ES2023", "DOM"],
     "module": "esnext",
     "types": ["node", "vite/client"],
+    /*
+     * `lambda/` sits outside this directory (it is deployed, not bundled), so
+     * Node's upward search for its imports starts at the repository root and
+     * never reaches `app/node_modules`. This points it back here, so the
+     * Lambda's tests typecheck in the same project as everything else.
+     */
+    "paths": { "vitest": ["./node_modules/vitest"] },
     "allowArbitraryExtensions": true,
     "resolveJsonModule": true,
     "skipLibCheck": true,
@@ -32,5 +39,5 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src/**/*.test.ts", "src/**/*.test.tsx"]
+  "include": ["src/**/*.test.ts", "src/**/*.test.tsx", "../lambda/**/*.ts"]
 }

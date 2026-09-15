@@ -7,7 +7,13 @@ import { PROVIDERS } from '../engine/providers/registry';
 import type { ProviderProfile, TariffPlan } from '../engine/providers/types';
 import { BillForm } from '../ui/BillForm';
 import { blankBill, withPlan, type BillFields } from '../ui/formState';
-import { SCALAR_FIELDS, billFieldsSchema, schemaRateKeys, type JsonSchema } from './schema';
+import {
+  DOCUMENT_KEY,
+  SCALAR_FIELDS,
+  billFieldsSchema,
+  schemaRateKeys,
+  type JsonSchema,
+} from './schema';
 
 /**
  * E0.1's checkpoint (D-21): the generated schema's rate properties are exactly
@@ -106,7 +112,7 @@ describe('generated extraction schema', () => {
 
         it('asks for every scalar field and nothing the bill does not print', () => {
           const scalars = Object.keys(props(billFieldsSchema(provider, plan))).filter(
-            (k) => k !== 'rates',
+            (k) => k !== 'rates' && k !== DOCUMENT_KEY,
           );
           expect(scalars).toEqual(SCALAR_FIELDS.map((f) => f.key));
           // The owner chose these before uploading; the sub-meters are not on
@@ -120,6 +126,15 @@ describe('generated extraction schema', () => {
           ]) {
             expect(scalars).not.toContain(absent);
           }
+        });
+
+        it('carries the document meta object, which is not a form field', () => {
+          // Added in E1.3: `wrong-provider` needs a fact off the page to compare
+          // against, and the candidate alone does not carry one. It is deliberately
+          // OUTSIDE the scalar half, because it must never reach `BillFields`.
+          const meta = props(billFieldsSchema(provider, plan))[DOCUMENT_KEY];
+          expect(Object.keys(props(meta))).toEqual(['utility']);
+          expect(schemaRateKeys(plan)).not.toContain(DOCUMENT_KEY);
         });
       });
     }

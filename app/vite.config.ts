@@ -1,3 +1,4 @@
+/// <reference types="vitest/config" />
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
@@ -10,4 +11,12 @@ export default defineConfig({
   // this value matches that prefix. See infra/README.md (D-15).
   base: '/',
   plugins: [react()],
+  test: {
+    // The extraction Lambda lives at the repository root, next to `infra/`,
+    // because it is deployed rather than bundled into the page. It shares the
+    // wire contract in `src/extract/` with the browser, so it is tested by the
+    // same run: `cd app && npm test` is the one command, as it is everywhere
+    // else in this repository.
+    include: ['src/**/*.test.{ts,tsx}', '../lambda/**/*.test.ts'],
+  },
 })
