@@ -45,7 +45,7 @@ Dependency P-06 (Claude model access) is **resolved — access granted 2026-09-1
 Claude branch of D-17/D-21 is the branch we build. The fallback stays recorded in P-06 and
 is not implemented.
 
-### Phase E0 — Groundwork with no cloud in it ⬜
+### Phase E0 — Groundwork with no cloud in it ✅
 
 Everything in this phase is pure TypeScript, runs under `vitest`, and needs no AWS account,
 no credential and no network. It is deliberately first: it is the part that can be gotten
@@ -53,14 +53,16 @@ wrong cheaply.
 
 | # | Sub-phase | Checkpoint | Status |
 |---|-----------|------------|--------|
-| E0.1 | `app/src/extract/schema.ts` — generate the JSON response schema from the selected plan's `ChargeTemplate[]`, keyed by `rateKey(charge)` / `slabRateKey(charge, i)` (D-21). | A test asserts the generated schema's rate properties are exactly the keys `BillForm` renders for that plan, for **every** plan in `registry.ts` — not just Torrent. | ⬜ |
-| E0.2 | `app/src/extract/types.ts` — the wire contract: `ExtractRequest` (bytes, providerId, planId) and `ExtractResult` (candidate `BillFields`, per-field confidence, error taxonomy). Strings throughout, as `formState.ts` defines them. | `ExtractResult.fields` type-checks as assignable to `BillFields`; a malformed fixture is rejected by the validator with a named error, never a thrown exception. | ⬜ |
-| E0.3 | Purity guard — a test that fails if anything under `engine/` imports `extract/`, the network, or a clock (D-18, `CLAUDE.md` working conventions). | The test passes now, and fails when a deliberate import is added to prove it works. | ⬜ |
-| E0.4 | Eval fixtures — the reference PDF's text layer plus the seven seeded cycles of D-12, checked in as extraction fixtures with their expected `BillFields`. | Fixtures load; each one's expected fields, fed to the engine, reproduce that cycle's `printedPayable` to the paisa. | ⬜ |
+| E0.1 | `app/src/extract/schema.ts` — generate the JSON response schema from the selected plan's `ChargeTemplate[]`, keyed by `rateKey(charge)` / `slabRateKey(charge, i)` (D-21). | A test asserts the generated schema's rate properties are exactly the keys `BillForm` renders for that plan, for **every** plan in `registry.ts` — not just Torrent. | ✅ |
+| E0.2 | `app/src/extract/types.ts` — the wire contract: `ExtractRequest` (bytes, providerId, planId) and `ExtractResult` (candidate `BillFields`, per-field confidence, error taxonomy). Strings throughout, as `formState.ts` defines them. | `ExtractResult.fields` type-checks as assignable to `BillFields`; a malformed fixture is rejected by the validator with a named error, never a thrown exception. | ✅ |
+| E0.3 | Purity guard — a test that fails if anything under `engine/` imports `extract/`, the network, or a clock (D-18, `CLAUDE.md` working conventions). | The test passes now, and fails when a deliberate import is added to prove it works. | ✅ |
+| E0.4 | Eval fixtures — the reference PDF's text layer plus the seven seeded cycles of D-12, checked in as extraction fixtures with their expected `BillFields`. | Fixtures load; each one's expected fields, fed to the engine, reproduce that cycle's `printedPayable` to the paisa. | ✅ |
 
 > **Milestone M1 — the extractor learns a utility at the same moment the form does.**
-> Adding a provider to `registry.ts` produces a working extraction schema with no second
-> edit. D-10's promise survives a feature it was not written for.
+> ✅ **Reached 2026-09-15.** Adding a provider to `registry.ts` produces a working
+> extraction schema with no second edit. D-10's promise survives a feature it was not
+> written for. Held by `extract/schema.test.tsx`, which renders `BillForm` for every plan
+> in the registry and compares the keys it writes to against the generated schema's.
 
 ### Phase E1 — The Lambda, on this machine ⬜
 
@@ -139,7 +141,7 @@ money**, on an inference call and on a deploy. The sessions below are cut at tho
 
 | # | Covers | Ends at | What is needed from the owner to close it |
 |---|--------|---------|-------------------------------------------|
-| **S1** | E0.1–E0.4 | M1 | *Asked at the start, not the end:* do the seven seeded cycles (D-12) have their original bills anywhere, or only the restated figures? Figures alone still make a valid eval; scans make a better one. To close: review the generated schema for the Torrent plan. |
+| **S1** | E0.1–E0.4 | M1 | ✅ **Closed 2026-09-15.** Answered: the seven cycles have **figures only** — no original bills survive, so `DOCUMENT_FIXTURES` holds the reference bill alone. Left for the owner to review: the generated schema for the Torrent plan, and the two choices in "Open from S1" below. |
 | **S2** | E1.1, E1.3 — the offline halves of the handler | — | Credentials in the shell (`aws sts get-caller-identity` returns the right account), `anthropic.claude-opus-5` enabled in Bedrock `us-east-1`, and explicit go-ahead to make paid calls. |
 | **S3** | E1.2, E1.4 | **M2** | Read the first candidate next to the actual bill and confirm the fields. Approve the two numbers chosen for D-20: request size cap and output-token ceiling. |
 | **S4** | E2.1–E2.4 | **M3** | The deploy itself — `cdk diff` to read, then `npm run deploy`. Budget amount and the alarm's email address. **How many bills you would realistically do in one sitting — that number is the WAF rate limit** (D-20 says tune against the owner, not the abuser). And a call on cost: a WAF web ACL is a standing ~$5–8/month, more than the inference it protects. |
@@ -148,6 +150,24 @@ money**, on an inference call and on a deploy. The sessions below are cut at tho
 | **S7** | E5.1–E5.3 | **M6** | Read the eval score and the per-bill cost, decide the cheaper-model question (D-21), approve the release. |
 
 **S1 is the only session that needs nothing from the owner from start to finish.**
+
+#### Open from S1 — two choices made in code, for the owner to confirm or overturn
+
+Neither blocks S2. Both are cheap to reverse now and expensive to reverse after E3 is built
+on top of them, which is why they are written down rather than left in the diff.
+
+1. **Per-field confidence is derived, not claimed.** E0.2 asked for per-field confidence.
+   What `extract/types.ts` carries is a `FieldStatus` of `read` / `missing` / `rejected`,
+   computed from what came back, rather than a number the model scores itself with. A
+   model's own confidence is not evidence, and D-18 already supplies real evidence: the
+   engine recomputes and the printed total either agrees or does not. If the owner wants a
+   model-reported score as well, it is a property on the schema and a field on the status.
+2. **An unread rate is left empty, not filled with the plan's published default.** Follows
+   E1.3's "never guessed", and makes the gap visible. The cost: an empty rate is a zero to
+   `buildBill`, which drops that charge entirely, so a bill with one unread rate computes
+   *low* and the mismatch is what says so. The alternative — pre-fill the default and flag
+   it — computes closer to right and hides the gap better. This is a judgement about which
+   failure the owner would rather have, so it is theirs to make.
 
 ### Session protocol
 

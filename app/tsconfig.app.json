@@ -24,5 +24,7 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src"]
+  "include": ["src"],
+  /* Tests are their own project (tsconfig.test.json): they may read files, the app may not. */
+  "exclude": ["src/**/*.test.ts", "src/**/*.test.tsx"]
 }

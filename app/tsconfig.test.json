@@ -1,0 +1,36 @@
+{
+  /*
+   * Tests, typechecked as their own project.
+   *
+   * Split out of tsconfig.app.json because the extraction fixtures and the
+   * purity guard read files off disk: they need Node's types, and the app —
+   * which runs in a browser and must keep running in one — must not. Excluding
+   * `*.test.*` from the app project is therefore a small guarantee in its own
+   * right, not only a way to satisfy the compiler.
+   */
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.test.tsbuildinfo",
+    "target": "es2023",
+    "lib": ["ES2023", "DOM"],
+    "module": "esnext",
+    "types": ["node", "vite/client"],
+    "allowArbitraryExtensions": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "jsx": "react-jsx",
+
+    /* Linting */
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "erasableSyntaxOnly": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["src/**/*.test.ts", "src/**/*.test.tsx"]
+}
