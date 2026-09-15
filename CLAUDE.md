@@ -99,6 +99,11 @@ statement (`@media print` in `styles.css`), and a history view over saved cycles
 - The calculation engine is the core asset — it should be pure, deterministic, and unit
   tested against the reference bill's exact figures.
 - Never silently drop rounding remainders; surface them.
+- **Bill extraction never computes money** (D-18). A model reads the paper bill and proposes
+  the strings the owner would have typed — a candidate `BillFields`. The engine recomputes
+  from those exactly as from typed ones, `printedPayable` cross-checks the result, and
+  nothing is saved until a person confirms. Nothing under `engine/` may import the
+  extraction module, reach the network, or read a clock. Extraction lives in `app/src/extract/`.
 - When a policy question comes up, check `DECISIONS.md` first. If it is unanswered, ask
   the user rather than assuming — then record the answer there.
 

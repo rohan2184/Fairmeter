@@ -414,7 +414,228 @@ preference, so it is written down.
 
 ---
 
+### D-17 — Extraction runs in a Lambda behind the existing distribution
+**Status:** ✅ Decided (2026-09-15)
+
+Reading a bill needs a model, and a model needs a credential. There are three places
+to put that credential, and only one survives contact with the actual user.
+
+- **In the browser, typed by the owner.** No backend at all, no cost to this project,
+  no abuse surface. And no user: the person this app is for will not create an API key.
+- **In the browser, ours.** Anything shipped to a browser is public. Not a choice.
+- **Server-side, ours.** A credential the user never sees and never pays for.
+
+**Decision:** one Node/ARM Lambda in `us-east-1`, reached at `/api/*` through an
+**additional behavior on the existing CloudFront distribution**, with Origin Access
+Control in front of its Function URL — the same pattern D-15 already uses for the S3
+origin, so the function is not reachable except through the distribution.
+
+**Why a behavior on the existing distribution rather than a bare Function URL or its own
+API Gateway domain:** it keeps the call **same-origin**. D-15's CSP says `connect-src
+'self'` and means it; a second hostname would force that open and add CORS to a project
+that currently talks to nothing. Routing through the distribution the app is already
+served from costs nothing and changes no header.
+
+**Why not EC2 or Fargate:** the work is six requests per household per year. An always-on
+box would cost more than the inference it serves. Lambda scales to zero. If the backend
+ever grows past the 15-minute ceiling or needs a persistent connection, Fargate is a
+later migration and not a rewrite.
+
+**Why `us-east-1`:** it is where the stack already deploys and where model availability is
+broadest. `ap-south-1` was considered for data residency and dropped — India's DPDP Act
+permits transfer rather than mandating localisation, so in-region is a nice thing to be
+able to say rather than a requirement. The latency argument does not survive either:
+~200 ms of Pacific against a multi-second inference call is noise. CloudFront is global
+and pins no region; `infra/bin/fairmeter.ts` already says so.
+
+**The model is Claude, served through Bedrock Mantle, and so there is no secret at all.**
+Mantle is the Messages-API path for Anthropic models on Bedrock — `anthropic.claude-opus-5`
+in `us-east-1`, via `AnthropicBedrockMantle` from `@anthropic-ai/bedrock-sdk`. The Lambda's
+IAM execution role carries `bedrock:InvokeModel` and that is the entire credential story:
+nothing in Secrets Manager, nothing to rotate, nothing that can be committed by accident.
+Use Mantle rather than the legacy `bedrock-runtime` `InvokeModel` path — it exposes the same
+`messages.create` surface as the first-party SDK, so the Lambda stays portable if the serving
+platform ever changes.
+
+**This is conditional on an access approval that has not landed yet** (P-06). The Lambda is
+written against a narrow internal interface — bytes and a plan in, candidate `BillFields`
+out — so if approval is refused, what changes is one module and not the architecture. P-06
+records what that costs.
+
+---
+
+### D-18 — The model proposes, the engine computes, the person confirms
+**Status:** ✅ Decided (2026-09-15)
+
+**Decision:** the model's only output is a candidate `BillFields` — the same strings the
+owner would otherwise have typed. It computes no money, writes no storage, and is not
+imported anywhere under `engine/`. The engine recomputes from those fields exactly as it
+does from typed ones, and nothing is saved until a person has confirmed it.
+
+**`engine/` stays pure, deterministic, offline and clock-free.** The golden test against
+the reference bill keeps meaning precisely what it meant before any of this existed.
+
+**The bill checks its own extraction.** Under D-04 every component is apportioned by one
+ratio, and the engine derives the payable total independently from the rates read off the
+page. The bill also *prints* its total, and `printedPayable` already exists to cross-check
+the two. So a misread rate does not quietly become a wrong share — it becomes a computed
+total that disagrees with the paper, which the UI already knows how to report. The
+verification for this feature was built before the feature was, as a side effect of the
+conservation property.
+
+**Consequence:** every extracted value lands in the form flagged as read-from-the-bill
+rather than typed, and stays editable. The owner is the authority on their own bill; the
+model is a typist with good eyesight.
+
+**Consequence:** a reading that *cannot* be verified this way does not get the same trust.
+Sub-meter photographs have no printed total to check against — only a plausible range from
+history — which is a large part of why they are out of scope for the first slice and will
+need their own guard rail when they arrive.
+
+---
+
+### D-19 — The image is read on the server and kept on the device
+**Status:** ✅ Decided (2026-09-15)
+
+An electricity bill carries a name, an address and a consumer number. Uploading one is the
+first time anything personal leaves the browser in this project's life, so where it comes
+to rest is a decision and not an implementation detail.
+
+**Decision:** the upload is sent to the Lambda, used, and discarded there — nothing written
+to S3, nothing logged beyond size and content type. The **browser** keeps the original in
+IndexedDB, attached to the cycle it produced, so a disputed share can be traced back to the
+paper it came from.
+
+**Rationale:** the traceability is worth real money in exactly the argument this app exists
+to settle — "why is my share ₹300 more this time" is answered best by the bill itself. But
+that value is local to the person holding the bill, so the copy should be too. D-03's
+promise, that your history lives on your device, survives intact.
+
+**Consequence:** `exportAll()` stays JSON and stays text. Images are not in it, so a cycle
+exported and re-imported elsewhere keeps every figure and loses its scan. Accepted: the
+figures are the record, the scan is a receipt.
+
+**Consequence:** IndexedDB is a second storage mechanism alongside the `CycleStore` of D-03.
+It holds only images, keyed by cycle id, and the app must render correctly when it is empty
+— cleared browser, different device, private window. A missing scan is normal, not an error.
+
+**Left open deliberately:** server-side retention tied to an account is a coherent later
+choice and would arrive with the backend D-03 already anticipates. Nothing here forecloses
+it, and the local copy would become a cache rather than the only copy.
+
+---
+
+### D-20 — A public endpoint that spends money gets a ceiling before it gets traffic
+**Status:** ✅ Decided (2026-09-15)
+
+D-17 puts a paid inference call behind an unauthenticated URL. The cost of that feature
+working as intended is negligible: a bill is a few thousand tokens and the owner reads six
+a year. The cost of it being found and driven in a loop is not, and it lands on this
+project rather than on whoever found it.
+
+**Decision — all four, before the endpoint is reachable:**
+
+- a **WAF rate-based rule** on `/api/*`, per IP;
+- a **request size cap** and a content check in the Lambda by **magic bytes** — not the
+  file extension, and not a `Content-Type` the caller chose;
+- a hard **output-token ceiling** on the model call;
+- an **AWS Budgets alarm** on inference spend, set low enough to be noticed within a day
+  rather than at the end of a month.
+
+**Rationale:** not one of these is interesting, and all of them together are cheaper than
+the incident they prevent.
+
+**Consequence:** an owner working through a backlog of several bills in one sitting must
+not trip the rate limit. Tune it against that case, not against the abuser — a control
+that blocks the only real user is worse than no control.
+
+**Revisit:** if D-03's backend brings accounts, per-account quotas become the primary
+control and the per-IP rule stays underneath as a floor.
+
+---
+
+### D-21 — One call, a schema generated from the provider profile
+**Status:** ✅ Decided (2026-09-15)
+
+**Decision:** extraction is a **single Messages request** — no tool loop, no agent, no
+session. One document in, one candidate `BillFields` out. The task is structured extraction
+and nothing about it is open-ended, so a loop would buy latency and cost and no accuracy.
+
+**The response schema is generated, not written.** The selected plan already describes every
+line item it has, as data, in `engine/providers/registry.ts`; its `ChargeTemplate[]` maps
+directly onto the properties of a JSON schema, keyed by the same `rateKey(charge)` the form
+uses. So the extractor learns a new utility at the same moment the form does, and D-10's
+promise — adding a provider is a registry entry and nothing else — survives a feature it
+was not written for. A hand-maintained second copy of the tariff shape would have broken it
+within two providers.
+
+That schema goes on `output_config.format`, so the response is schema-valid by construction
+rather than by hopeful parsing.
+
+**Structured outputs and citations are mutually exclusive** — enabling `citations` on the
+document block alongside `output_config.format` is rejected. Citations would give a page and
+character range for every figure: *here is where on the bill ₹4.60 was read from*. That is
+genuinely attractive for a product whose whole job is to be persuasive to someone who thinks
+they have been overcharged.
+
+**Chose structured outputs.** D-18's cross-check already answers *whether* the read was
+right, which is the load-bearing question; citations answer *where it came from*, which only
+makes an audit faster. A malformed response breaks the form for everyone, a missing
+provenance link inconveniences the rare dispute. If disputes turn out to be common, a
+second citations-enabled call on demand is a small addition — the choice is per-request, not
+architectural.
+
+**Consequence — the eval comes with the feature.** `100113210.pdf` plus the seven seeded
+cycles of D-12 are a ready-made scored set, graded on whether the engine's computed total
+matches `printedPayable` to the paisa. That is an objective number, in the same spirit as
+the golden test, and it is what makes "would a cheaper model do" a measurement rather than
+an argument. Extraction should not ship without it.
+
+---
+
 ## ⏳ Pending
+
+### P-06 — Claude access approval, and what happens without it
+**Status:** ⏳ Pending — an approvals question, no longer a design one
+
+**The design is settled on Claude** (D-17, D-21). Access has been requested and not yet
+granted; if it is refused the permitted models are **GLM 5**, **Kimi K2.5** and **Kimi K2
+Thinking**, which is an external constraint rather than a technical preference.
+
+**What Claude access resolves, and why it was worth waiting for:**
+
+- **Native PDF *and* image input.** A photographed bill and a downloaded PDF are one code
+  path. Without it, they are two, and the photograph needs real OCR — Textract is the
+  in-AWS answer, and it is a whole stage with its own failure modes.
+- **No secret anywhere.** Bedrock Mantle serves Claude, so D-17's IAM branch applies.
+  A vendor API instead means a key in Secrets Manager and rotation this project owns.
+- **Structured outputs**, which is what lets D-21 generate the schema from the registry
+  rather than parse hopefully.
+
+**If approval is refused, what actually changes:**
+
+1. **Vision is the question to ask first.** Kimi K2 and K2 Thinking are text models — vision
+   has been a separate line at Moonshot. GLM 5's capability here needs confirming rather
+   than assuming.
+2. **Text-only is survivable, and for the reference bill nearly free.** `100113210.pdf` has
+   a real text layer — `CLAUDE.md` already documents pulling it out with `pypdf`, which is
+   how this repository has always read it. Extract the text, hand the model text, map it
+   onto `BillFields`. Ship PDF-only first and add photographs as a second slice.
+3. **PDF becomes the better input rather than the more convenient one**, and the UI should
+   say which path it used. Worth telling the owner, because it changes what they should
+   upload.
+4. **Note for the record:** Bedrock *Mantle* is the Messages-API path for Anthropic models
+   specifically and does not serve these. An earlier draft of D-17 named it as though it
+   were platform-neutral. It is not.
+
+**Unchanged in every branch:** D-18's verification. The printed-payable cross-check tests
+the arithmetic of the result and never the provenance of the digits, so it works identically
+on a vision read, an extracted text layer, and OCR output.
+
+**Resolves when:** the access request is answered. Until then D-17 and D-21 are written
+against Claude and the Lambda is not worth starting.
+
+---
 
 ### ~~P-01 — Residual attribution~~ → resolved by D-08
 **Status:** ✅ Closed
