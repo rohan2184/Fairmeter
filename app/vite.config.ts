@@ -17,6 +17,10 @@ export default defineConfig({
     // wire contract in `src/extract/` with the browser, so it is tested by the
     // same run: `cd app && npm test` is the one command, as it is everywhere
     // else in this repository.
-    include: ['src/**/*.test.{ts,tsx}', '../lambda/**/*.test.ts'],
+    // Scoped to `extract/` rather than `../lambda/**`: the Lambda has its own
+    // `package.json` (the model SDK is server-side and must never reach the
+    // browser bundle), and a bare `**` glob walks into its `node_modules` and
+    // runs whatever tests its dependencies happen to ship.
+    include: ['src/**/*.test.{ts,tsx}', '../lambda/extract/**/*.test.ts'],
   },
 })

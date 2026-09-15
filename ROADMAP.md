@@ -72,9 +72,9 @@ candidate; it can be called from a test.
 | # | Sub-phase | Checkpoint | Status |
 |---|-----------|------------|--------|
 | E1.1 | Handler skeleton in `lambda/extract/` — request parse, **size cap**, **magic-byte** content sniff for PDF/JPEG/PNG (never the extension, never the caller's `Content-Type`) (D-20). | Unit tests: an oversized body, a `.pdf` that is actually a ZIP, and an empty body each get a distinct 4xx and never reach the model. | ✅ |
-| E1.2 | The single Messages call — `AnthropicBedrockMantle`, `anthropic.claude-opus-5`, `us-east-1`, `output_config.format` set to the E0.1 schema, output-token ceiling **4096** (D-22). One request. No tool loop. | Invoked against `100113210.pdf` with real credentials, it returns a schema-valid candidate. | ⬜ |
+| E1.2 | The single Messages call — `AnthropicBedrockMantle`, `anthropic.claude-opus-5`, `us-east-1`, `output_config.format` set to the E0.1 schema, output-token ceiling **4096** (D-22). One request. No tool loop. | Invoked against `100113210.pdf` with real credentials, it returns a schema-valid candidate. | ⏸ |
 | E1.3 | Prompt and failure taxonomy — unreadable page, wrong provider for the selected plan, a field the model could not find. A missing field comes back empty for the owner to type, never guessed. | A cropped bill returns partial fields plus a named reason, and the UI contract in E0.2 can render it. | ✅ |
-| E1.4 | Logging discipline (D-19) — size and content type only. No image bytes, no extracted personal fields, nothing written to S3. | Read the CloudWatch output of an E1.2 run: no consumer number, no name, no address anywhere in it. | ⬜ |
+| E1.4 | Logging discipline (D-19) — size and content type only. No image bytes, no extracted personal fields, nothing written to S3. | Read the CloudWatch output of an E1.2 run: no consumer number, no name, no address anywhere in it. **Amended in S3 — see below.** | ⏸ |
 
 > **Milestone M2 — the reference bill reads itself.** `100113210.pdf` in, candidate
 > `BillFields` out, engine recomputes, computed total equals `printedPayable` to the paisa
@@ -143,7 +143,7 @@ money**, on an inference call and on a deploy. The sessions below are cut at tho
 |---|--------|---------|-------------------------------------------|
 | **S1** | E0.1–E0.4 | M1 | ✅ **Closed 2026-09-15.** Answered: the seven cycles have **figures only** — no original bills survive, so `DOCUMENT_FIXTURES` holds the reference bill alone. Left for the owner to review: the generated schema for the Torrent plan. The two choices it left open were confirmed in S2 and are now D-22. |
 | **S2** | E1.1, E1.3 — the offline halves of the handler | — | ✅ **Closed 2026-09-15.** Answered: both "Open from S1" choices stand, and the request size cap is 8 MB — all three recorded as **D-22**. The owner also supplied the fact that reshaped E1.3: **the bill is printed on both sides, and the back page carries the rates.** Left for the owner: the schema amendment below, and the two S3 prerequisites (credentials in the shell, `anthropic.claude-opus-5` enabled in Bedrock `us-east-1`, explicit go-ahead to make paid calls). |
-| **S3** | E1.2, E1.4 | **M2** | `AWS_PROFILE=fairmeter-admin` (D-23 — `fairmeter-deploy` cannot invoke the model). Read the first candidate next to the actual bill and confirm the fields. Both of D-20's numbers are already settled in D-22 — 8 MB request cap, 4096 output-token ceiling — so nothing is owed up front. |
+| **S3** | E1.2, E1.4 | **M2** | ⏸ **Ran 2026-09-15, did not close.** Credentials were present and correct, and both of D-20's numbers were already settled in D-22, so nothing was owed up front — but the account turned out not to be subscribed to any Anthropic model (**D-24**), so M2 was not reached and no candidate exists to read. The offline work is done and green. What is still owed: enable model access on account 565398310596, then re-run the live check and read the first candidate next to the actual bill. |
 | **S4** | E2.1–E2.4 | **M3** | `AWS_PROFILE=fairmeter-deploy` (D-23). The deploy itself — `cdk diff` to read, then `npm run deploy`. Budget amount and the alarm's email address. **How many bills you would realistically do in one sitting — that number is the WAF rate limit** (D-20 says tune against the owner, not the abuser). And a call on cost: a WAF web ACL is a standing ~$5–8/month, more than the inference it protects. |
 | **S5** | E3.1–E3.4 | **M4** | Use it. Copy and layout review of the upload and review states, and a judgement on whether the mismatch message reads right to someone being told they owe more. |
 | **S6** | E4.1–E4.3 | **M5** | Try it on a phone. Camera capture and IndexedDB behave differently there than in desktop Chrome, and the stairwell is the real use case. |
@@ -195,6 +195,43 @@ Two consequences, both built:
 **For E3 (session S5):** the upload control has to accept, and ask for, **both sides**. A
 single-file picker is not enough for the photograph case, and the owner reviewing the copy in
 S5 should see the two-page ask in it.
+
+
+#### Open from S3 — the account cannot invoke the model, and E1.4 cannot see CloudWatch yet
+
+**Both S3 rows are ⏸ blocked rather than ⬜ not-started.** The code for each is written,
+typechecked, linted and green; each stops at a checkpoint that needs something this session
+could not supply.
+
+**E1.2 — blocked on AWS, and outside this project's control.** Anthropic's first-time-user
+form cannot be submitted on account 565398310596 by **either** route — the CLI
+(`put-use-case-for-model-access`, refused in two regions, standalone account, under
+`AdministratorAccess`) or the Bedrock console's own dialog, which renders the identical
+*"Your account is not authorized to perform this action"* error on submit. AWS case
+**178290667900630** was opened for exactly this and marked resolved on 3 September 2026; that
+closure did not hold. **Reopen 178290667900630 — do not file a new case.** Evidence and the
+full diagnosis are in **D-24**. What follows is how it was first found.
+
+**The original finding.** The first real call returned
+`403 permission_error: anthropic.claude-opus-5 is not available for this account`. No
+Anthropic model has ever been enabled in account 565398310596; `get-use-case-for-model-access`
+replies *"You have not filled out the request form."* This is not a defect in D-17's design
+and not a credential problem — the request was signed, reached `us-east-1` and was understood.
+It is a priced agreement the owner has to accept, which is why an agent did not accept it.
+Full evidence and the ruled-out alternatives are in **D-24**; the steps are in the S3
+close-out. The checkpoint is unchanged and still exactly what proves the row.
+
+**E1.4 — the checkpoint names a place that does not exist until E2.1.** It says to read the
+CloudWatch output of an E1.2 run, and nothing is deployed until E2.1 builds the Lambda. The
+log line is identical either way — `console.log` of one JSON object *is* what CloudWatch
+receives — so the amendment is to read it **locally** from the E1.2 run in this session, and
+to keep the deployed reading as a confirmation in S4 rather than the primary evidence.
+
+The substance of E1.4 is already provable without either, and is proven: `log.test.ts` builds
+the log line from a candidate deliberately stuffed with a name, an address, a consumer number
+and a wrong utility's name, and asserts none of them — nor any figure off the bill, nor any
+base64 — can appear. D-19's rule is enforced by the *shape* of `LogLine`, a closed record of
+scalars, rather than by a redactor, which is a list of things somebody has to remember.
 
 ### Session protocol
 

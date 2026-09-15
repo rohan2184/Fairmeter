@@ -39,5 +39,5 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src/**/*.test.ts", "src/**/*.test.tsx", "../lambda/**/*.ts"]
+  "include": ["src/**/*.test.ts", "src/**/*.test.tsx", "../lambda/extract/**/*.ts"]
 }

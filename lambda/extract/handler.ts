@@ -9,7 +9,9 @@ import {
   type ExtractResult,
 } from '../../app/src/extract/types';
 import type { ProviderProfile, TariffPlan } from '../../app/src/engine/providers/types';
+import type { ModelUsage } from './bedrock';
 import { reviewed } from './diagnose';
+import { buildLogLine, consoleSink, type LogSink } from './log';
 import { extractionPrompt } from './prompt';
 import { declaredKind, sniff } from './sniff';
 
@@ -203,10 +205,33 @@ export function gate(event: HttpEvent): Gated {
   };
 }
 
-export function createHandler(read: ModelReader) {
+/**
+ * What the handler needs besides the model: where a log line goes, and what the
+ * last call cost. Both are injected for the same reason the reader is — so the
+ * tested handler needs no credential and writes nowhere (E1.4).
+ */
+export interface HandlerDeps {
+  read: ModelReader;
+  log?: LogSink;
+  usage?: () => ModelUsage | null;
+  /** Injected so the handler has no clock of its own to reach for. */
+  now?: () => number;
+}
+
+export function createHandler(deps: ModelReader | HandlerDeps) {
+  const { read, log = consoleSink, usage, now = Date.now } =
+    typeof deps === 'function' ? ({ read: deps } as HandlerDeps) : deps;
+
   return async function handler(event: HttpEvent): Promise<HttpResponse> {
+    const started = now();
     const checked = gate(event);
-    if (!checked.ok) return respond(checked.result);
+    if (!checked.ok) {
+      // A rejected request is logged too, and it is the half most worth having:
+      // it is what an oversized body or a sniff failure looks like from the
+      // outside. Its size is unknown by definition when the body never parsed.
+      log(buildLogLine({ bytes: 0, kind: 'rejected', result: checked.result, ms: now() - started }));
+      return respond(checked.result);
+    }
 
     const { request, document, kind } = checked;
     // `gate` already resolved these; this is the narrowing, not a second
@@ -214,6 +239,19 @@ export function createHandler(read: ModelReader) {
     const found = resolve(request.providerId, request.planId);
     if (!('provider' in found)) return respond({ ok: false, error: found });
     const { provider, plan } = found;
+
+    const record = (result: ExtractResult): HttpResponse => {
+      log(
+        buildLogLine({
+          bytes: document.length,
+          kind,
+          result,
+          usage: usage?.(),
+          ms: now() - started,
+        }),
+      );
+      return respond(result);
+    };
 
     try {
       const text = await read({
@@ -224,7 +262,7 @@ export function createHandler(read: ModelReader) {
         prompt: extractionPrompt(provider, plan),
         schema: billFieldsSchema(provider, plan),
       });
-      return respond(
+      return record(
         reviewed(parseCandidateJson(text, request.providerId, request.planId), provider, plan),
       );
     } catch (e) {
@@ -232,7 +270,7 @@ export function createHandler(read: ModelReader) {
       // content type in the log, and nothing else.
       const message = e instanceof Error ? e.message : String(e);
       const throttled = /throttl|too many requests|rate limit/i.test(message);
-      return respond(
+      return record(
         throttled
           ? fail('rate-limited', 'The reader is busy. Wait a moment and try again.')
           : fail('internal', 'The bill could not be read. Type it in, or try again.'),

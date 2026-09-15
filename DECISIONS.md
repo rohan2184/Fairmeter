@@ -681,8 +681,123 @@ third user, `fairmeter-invoke`, scoped to `bedrock:InvokeModel` on the single mo
 leaked experiment key is an inference bill rather than the account. Not built; `fairmeter-admin`
 is what S3 uses until it is.
 
-**`anthropic.claude-opus-5` is listed by `bedrock list-foundation-models` in `us-east-1` for
-this account**, which is P-06's access confirmed in practice rather than on paper.
+**~~`anthropic.claude-opus-5` is listed by `bedrock list-foundation-models` in `us-east-1` for
+this account, which is P-06's access confirmed in practice rather than on paper.~~**
+**Struck in S3 — the inference was wrong.** Listing is Bedrock's catalogue, not this
+account's entitlement; the account is `NOT_AUTHORIZED` for every Anthropic model and the
+first real call returned 403. See **D-24**.
+
+---
+
+### D-24 — A model listed is not a model you may call
+**Status:** ✅ Decided (2026-09-15)
+
+**Discovered in S3, and it invalidates a line in D-23.** D-23 closed by saying
+`anthropic.claude-opus-5` "is listed by `bedrock list-foundation-models` in `us-east-1` for
+this account, which is P-06's access confirmed in practice rather than on paper." That
+inference is wrong, and it is worth writing down because it is an easy one to make twice.
+
+`list-foundation-models` returns **Bedrock's catalogue** — what the service sells in that
+region. It says nothing about what this account may invoke. The call that answers that is
+`get-foundation-model-availability`, and for every Anthropic model in this account it says:
+
+```
+authorizationStatus    NOT_AUTHORIZED
+agreementAvailability  NOT_AVAILABLE
+entitlementAvailability AVAILABLE
+regionAvailability     AVAILABLE
+```
+
+Read that as: the model exists here, nothing is blocking us from having it, and **we have
+not asked for it.** `get-use-case-for-model-access` is blunter — *"You have not filled out
+the request form."* No Anthropic model has ever been enabled in account 565398310596.
+
+So the first real call returned `403 permission_error: anthropic.claude-opus-5 is not
+available for this account`.
+
+**Decision — the model id stays `anthropic.claude-opus-5`, bare.** The obvious suspicion was
+a cross-region inference profile: `us.anthropic.claude-opus-5` and `global.anthropic.claude-opus-5`
+are both listed ACTIVE by `list-inference-profiles`. Passing the `us.` prefix to Mantle
+returns `404 not_found_error: The model 'us.anthropic.claude-opus-5' does not exist`.
+**Mantle takes the bare model id and does its own routing**; the profile prefixes belong to
+the legacy `bedrock-runtime` InvokeModel path that D-17 deliberately did not choose. The
+404 is also the useful half of the evidence: the request was signed, reached `us-east-1`,
+and was understood. Nothing about D-17's architecture is wrong — the account is simply not
+subscribed.
+
+**Consequence — this is an owner action and cannot be an agent's.** Enabling access means
+accepting a priced agreement on the owner's AWS account (the offer's rate card reads $5.00
+per million input tokens and $25.00 per million output tokens, standard, for this model).
+Accepting commercial terms on someone's account is not a step to take on their behalf, and
+the credentials being loaded does not make it one.
+
+**Amended the same day — the self-service remedy does not work on this account either.**
+The owner ran `put-use-case-for-model-access` with a complete form. It was refused, and not
+for its contents:
+
+```
+ValidationException: Your account is not authorized to perform this action.
+Please create a support case … with details about your use case.
+```
+
+Identical in `us-west-2`, so it is not regional. The account is standalone — not a member of
+an AWS Organization — so no service control policy explains it, and `fairmeter-admin` holds
+`AdministratorAccess`, so IAM does not either. The distinguishing fact is in the availability
+table:
+
+| Provider | `authorizationStatus` | `agreementAvailability` |
+|---|---|---|
+| Anthropic (Opus 5, Opus 4.8, Sonnet 5) | NOT_AUTHORIZED | **NOT_AVAILABLE** |
+| Amazon Nova, Meta Llama, Mistral | NOT_AUTHORIZED | AVAILABLE |
+
+Every other provider's agreement is *available to create*; Anthropic's is gated behind the
+first-time-user form, and the form is what this account may not submit **through the API**.
+(The pathway was deliberately not probed by creating a non-Anthropic agreement — that would
+mean accepting a priced agreement on the owner's account for a model this project will never
+call.)
+
+**Amended again — the form is a CONSOLE step, and the support case for it is already closed.**
+The owner had been here before. AWS case **178290667900630** was opened for exactly this and
+resolved on **3 September 2026**: *"Your account has been updated and you should now be able
+to access Amazon Bedrock models, including Anthropic Claude."* Its instruction is specific,
+and it is not the CLI:
+
+> navigate to the Amazon Bedrock console, go to the Model catalog, select the Claude model you
+> wish to use, and follow the on-screen prompts to submit your use case details. **Access is
+> granted immediately upon successful submission.**
+
+That reading was then tested and **failed**. The owner opened Model catalog → Anthropic →
+Claude Opus 5 → *Submit use case details*, filled the form, and got the **same error, word for
+word**, rendered at the top of the console dialog:
+
+> Your account is not authorized to perform this action. Please create a support case with
+> details about your use case and we will get back to you.
+
+So it is **not** an API-path limitation, and the intermediate guess that it was should be read
+as the wrong turn it was. Both surfaces refuse, the form has never been submittable on this
+account, and the enablement AWS reported as complete on 3 September **did not take effect**.
+
+**The lesson, three times over in one session.** Each step of this diagnosis was an inference
+from something that did not actually say what it was taken to say: `list-foundation-models`
+was read as entitlement; then an API refusal was read as a quirk of the API; then a support
+case marked *resolved* was read as a capability that existed. Only the last of those was
+checked by doing the thing rather than reasoning about it, and it was the one that broke. For
+anything in this area, **the check is the attempt** — a status field, a docs page and a
+closed ticket are all hearsay.
+
+**Current state: reopen case 178290667900630.** Not a new case — that one carries the history
+and the closure that did not hold.
+
+**This is not P-06's fallback branch.** P-06 recorded what to do if *Anthropic access* were
+refused — GLM 5 or Kimi, and a text-only path via the PDF's text layer. Nothing has been
+refused here: this is AWS account enablement, upstream of that question entirely. D-17 and
+D-21 stand unchanged, and the fallback stays unimplemented.
+
+**Consequence — P-06 was resolved on the wrong evidence, and stays resolved anyway.** The
+access *approval* of P-06 was a real answer about which models this project may design
+against, and that answer has not changed. What was never true was the closing claim that it
+had been confirmed in practice. The confirmation that counts is a `200`, and until E1.2's
+checkpoint produces one, nothing in this repository should say access is proven.
 
 ---
 
@@ -730,6 +845,12 @@ on a vision read, an extracted text layer, and OCR output.
 **Resolved:** the access request was answered yes on 2026-09-15. The Lambda is now worth
 starting, and `ROADMAP.md` phase E0 is where it starts — with the pure, testable parts that
 need no cloud at all.
+
+**Amended in S3:** the approval above is real and still stands — it is the answer to *which
+model may this project be designed against*. It is **not** evidence that the AWS account can
+invoke it, and S3 found that it cannot: no Anthropic model has ever been enabled in account
+565398310596. That is a subscription step nobody has taken, not a reversal of this approval.
+**D-24** has the finding, the evidence and the remedy.
 
 ---
 

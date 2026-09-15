@@ -31,7 +31,9 @@ absent owner. The unit of the model is a household, which is either metered or u
 | `app/src/storage/` | `CycleStore` interface + localStorage implementation |
 | `app/src/ui/`, `app/src/export/` | React components; WhatsApp text + print output |
 | `app/public/404.html`, `50x.html` | Standalone branded status pages — no bundle, no webfont (D-16) |
-| `lambda/extract/` | Bill-extraction handler (D-17): request gate, magic-byte sniff, prompt, failure taxonomy. Tested by `app`'s vitest run; the model call is injected, so the tests cost nothing |
+| `lambda/extract/` | Bill-extraction handler (D-17): request gate, magic-byte sniff, prompt, failure taxonomy, log discipline (D-19). Tested by `app`'s vitest run; the model call is injected, so the tests cost nothing |
+| `lambda/extract/bedrock.ts` | The one Messages call, and the only file here that reaches the network. Its own `package.json` keeps the model SDK out of the browser bundle |
+| `lambda/extract/live.test.ts` | The only test that costs money. Skipped unless `FAIRMETER_LIVE=1`; run with `AWS_PROFILE=fairmeter-admin` (D-23) |
 | `infra/` | AWS CDK stack: private S3 + CloudFront static hosting (D-15). `npm run deploy` |
 | `discard/` | Retired material kept out of the way — see `discard/README.md` (D-16) |
 

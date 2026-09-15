@@ -1,0 +1,10 @@
+{
+  "name": "fairmeter-extract",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Bill-extraction Lambda (D-17). Its own package because the model SDK belongs to the server side and must never enter the browser bundle.",
+  "dependencies": {
+    "@anthropic-ai/bedrock-sdk": "^0.28.0"
+  }
+}

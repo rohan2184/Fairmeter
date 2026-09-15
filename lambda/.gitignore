@@ -1,0 +1,3 @@
+# The model SDK is a server-side dependency, installed here rather than in the
+# app so it can never reach the browser bundle. It is not checked in.
+node_modules
