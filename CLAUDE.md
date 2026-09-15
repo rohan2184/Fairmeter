@@ -19,6 +19,7 @@ absent owner. The unit of the model is a household, which is either metered or u
 | `PROBLEM_STATEMENT.md` | Problem definition, reference-bill anatomy, scope, correctness properties |
 | `SPEC.md` | Domain model, calculation contract, architecture, validation rules |
 | `DECISIONS.md` | Decisions log — ✅ decided / ⏳ pending. **Read before implementing anything.** |
+| `ROADMAP.md` | Versions → phases → sub-phases, each with a checkpoint. **Says what to build next; update its status column as you go.** |
 | `PROVIDERS.md` | Utility research: who bills where, every tariff figure and its source |
 | `100113210.pdf` | Reference bill: Torrent Power, Ahmedabad, July 2026, Non-RGP Commercial |
 | `Monthly Meter Reading Form (Responses).xlsx` | The owner's original spreadsheet — what this app replaces |

@@ -596,11 +596,13 @@ an argument. Extraction should not ship without it.
 ## ⏳ Pending
 
 ### P-06 — Claude access approval, and what happens without it
-**Status:** ⏳ Pending — an approvals question, no longer a design one
+**Status:** ✅ Resolved (2026-09-15) — **access granted**
 
-**The design is settled on Claude** (D-17, D-21). Access has been requested and not yet
-granted; if it is refused the permitted models are **GLM 5**, **Kimi K2.5** and **Kimi K2
-Thinking**, which is an external constraint rather than a technical preference.
+**The design is settled on Claude** (D-17, D-21), and access has now been granted, so the
+Claude branch of D-17 and D-21 is the one that gets built. The rest of this entry is kept
+as the record of what was at stake and what the fallback would have cost; it is **not**
+implemented. Had access been refused, the permitted models were **GLM 5**, **Kimi K2.5**
+and **Kimi K2 Thinking** — an external constraint rather than a technical preference.
 
 **What Claude access resolves, and why it was worth waiting for:**
 
@@ -632,8 +634,9 @@ Thinking**, which is an external constraint rather than a technical preference.
 the arithmetic of the result and never the provenance of the digits, so it works identically
 on a vision read, an extracted text layer, and OCR output.
 
-**Resolves when:** the access request is answered. Until then D-17 and D-21 are written
-against Claude and the Lambda is not worth starting.
+**Resolved:** the access request was answered yes on 2026-09-15. The Lambda is now worth
+starting, and `ROADMAP.md` phase E0 is where it starts — with the pure, testable parts that
+need no cloud at all.
 
 ---
 
